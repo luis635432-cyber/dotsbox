@@ -3,44 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inventario Inteligente</title>
+    <title>Inventario Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: system-ui, -apple-system, sans-serif; }
-        .box-card { transition: all 0.2s; border-radius: 2rem; }
+        .box-card { transition: all 0.2s; border-radius: 2rem; cursor: pointer; }
+        .box-card:active { transform: scale(0.96); }
         .is-listening { animation: pulse 1.5s infinite; background-color: #ef4444 !important; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-        #debugLog { font-size: 9px; opacity: 0.7; margin-top: 4px; font-weight: normal; }
+        /* Ocultar barra de scroll en la ventana emergente */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen pb-44">
 
     <header class="bg-white p-6 shadow-sm sticky top-0 z-20 flex justify-between items-center">
         <h1 class="text-xl font-black text-blue-600 tracking-tighter">MY BOXES 📦</h1>
-        <button onclick="if(confirm('¿Borrar todo?')){localStorage.clear(); location.reload();}" class="text-[10px] bg-red-50 px-3 py-1 rounded-full text-red-400 font-bold">RESETEAR</button>
+        <button onclick="if(confirm('¿Borrar TODO?')){localStorage.clear(); location.reload();}" class="text-[10px] bg-red-50 px-3 py-1 rounded-full text-red-400 font-bold">RESETEAR</button>
     </header>
 
     <div class="p-4">
-        <input type="text" id="searchInput" placeholder="Buscar objeto o número..." class="w-full p-4 rounded-2xl bg-white border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-400">
+        <input type="text" id="searchInput" placeholder="Buscar objeto o número..." class="w-full p-4 rounded-2xl bg-white border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-400 font-medium">
     </div>
 
     <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4"></main>
 
-    <div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-100 to-transparent z-30">
+    <div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-100 via-slate-100 to-transparent z-10">
         <button id="voiceBtn" class="w-full bg-blue-600 text-white font-bold py-5 rounded-[2rem] shadow-2xl flex flex-col items-center justify-center active:bg-blue-800 transition-all">
             <span id="btnText" class="text-lg">Toca y di: "Caja 5 martillo" 🎤</span>
-            <div id="debugLog">Sistema listo en tu servidor</div>
+            <div id="debugLog" class="text-[9px] opacity-70 font-normal mt-1">Sistema de voz listo</div>
         </button>
     </div>
 
+    <div id="boxModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-end sm:items-center justify-center transition-opacity">
+        <div class="bg-white w-full sm:w-96 rounded-t-3xl sm:rounded-3xl p-6 h-[85vh] sm:h-auto flex flex-col shadow-2xl relative">
+            
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modalTitle" class="text-2xl font-black text-blue-600 uppercase tracking-tighter">📦 CAJA --</h2>
+                <button onclick="cerrarModal()" class="bg-slate-100 text-slate-500 w-10 h-10 rounded-full font-bold text-lg active:bg-slate-200">X</button>
+            </div>
+
+            <div class="mb-4">
+                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nombre de esta caja:</label>
+                <input type="text" id="modalCustomName" placeholder="Ej: Herramientas Pesadas" onchange="guardarNombreCaja(this.value)" class="w-full mt-1 p-3 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-400 font-semibold text-slate-700">
+            </div>
+
+            <div class="flex-grow overflow-y-auto no-scrollbar mb-4 border-t border-b border-slate-100 py-4" id="modalItemsList">
+                </div>
+
+            <div class="flex gap-2 mb-2">
+                <input type="text" id="modalNewItem" placeholder="Añadir objeto a mano..." class="flex-grow p-3 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-400 text-sm">
+                <button onclick="añadirItemManual()" class="bg-blue-600 text-white px-4 rounded-xl font-bold active:bg-blue-800">✚</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // --- INICIALIZACIÓN Y DATOS ---
+        // Migramos los datos viejos (versión 4) al nuevo sistema (versión 5) para no perder nada.
+        let inventarioViejo = JSON.parse(localStorage.getItem('miInventario_v4'));
+        let inventario = JSON.parse(localStorage.getItem('miInventario_v5'));
+
+        if (!inventario) {
+            inventario = {};
+            if (inventarioViejo) {
+                for (let id in inventarioViejo) {
+                    let contenidoStr = inventarioViejo[id];
+                    let itemsArray = contenidoStr ? contenidoStr.split(',').map(i => i.trim()).filter(i => i) : [];
+                    inventario[id] = { titulo: "", items: itemsArray };
+                }
+            } else {
+                for(let i=1; i<=20; i++) {
+                    let id = i < 10 ? '0'+i : i.toString();
+                    inventario[id] = { titulo: "", items: [] };
+                }
+            }
+            guardarDatos();
+        }
+
+        // Asegurarnos de que las 20 cajas existan en la base de datos
+        for(let i=1; i<=20; i++) {
+            let id = i < 10 ? '0'+i : i.toString();
+            if(!inventario[id]) inventario[id] = { titulo: "", items: [] };
+        }
+
+        function guardarDatos() {
+            localStorage.setItem('miInventario_v5', JSON.stringify(inventario));
+        }
+
+        // --- RENDERIZAR LA PANTALLA PRINCIPAL ---
         const boxGrid = document.getElementById('boxGrid');
+        const searchInput = document.getElementById('searchInput');
+
+        function render(filtro = "") {
+            boxGrid.innerHTML = '';
+            for (let i = 1; i <= 20; i++) {
+                const id = i < 10 ? '0' + i : i.toString();
+                const caja = inventario[id];
+                const contenidoTexto = caja.items.join(", ");
+                const tituloMostrar = caja.titulo ? caja.titulo : `CAJA ${id}`;
+                
+                // Lógica del buscador
+                if (filtro && !contenidoTexto.toLowerCase().includes(filtro.toLowerCase()) && 
+                    !tituloMostrar.toLowerCase().includes(filtro.toLowerCase()) && 
+                    !id.includes(filtro)) continue;
+                
+                boxGrid.innerHTML += `
+                    <div onclick="abrirModal('${id}')" class="box-card bg-white p-5 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+                        <span class="text-2xl opacity-40 mb-2">📦</span>
+                        <span class="text-[10px] font-black text-blue-500 uppercase leading-tight">${tituloMostrar}</span>
+                        <p class="mt-2 text-[11px] text-slate-500 font-bold line-clamp-3">
+                            ${caja.items.length > 0 ? contenidoTexto : '<span class="text-slate-200">Vacía</span>'}
+                        </p>
+                        ${caja.items.length > 0 ? `<div class="mt-2 text-[8px] bg-blue-50 text-blue-600 px-2 py-1 rounded-full font-bold">${caja.items.length} ítems</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+        render();
+        searchInput.addEventListener('input', (e) => render(e.target.value));
+
+        // --- 🌟 LÓGICA DE LA VENTANA MODAL (FASE 1) 🌟 ---
+        const modal = document.getElementById('boxModal');
+        let cajaAbiertaActual = null;
+
+        function abrirModal(id) {
+            cajaAbiertaActual = id;
+            document.getElementById('modalTitle').innerText = `📦 CAJA ${id}`;
+            document.getElementById('modalCustomName').value = inventario[id].titulo;
+            renderItemsModal();
+            modal.classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            modal.classList.add('hidden');
+            cajaAbiertaActual = null;
+            render(searchInput.value); // Actualizar el fondo al cerrar
+        }
+
+        function guardarNombreCaja(nuevoNombre) {
+            inventario[cajaAbiertaActual].titulo = nuevoNombre;
+            guardarDatos();
+        }
+
+        function renderItemsModal() {
+            const lista = document.getElementById('modalItemsList');
+            lista.innerHTML = '';
+            const items = inventario[cajaAbiertaActual].items;
+
+            if(items.length === 0) {
+                lista.innerHTML = '<p class="text-center text-slate-300 text-sm italic mt-10">La caja está vacía</p>';
+                return;
+            }
+
+            items.forEach((item, index) => {
+                lista.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl mb-2 border border-slate-100">
+                        <span class="text-sm font-medium text-slate-700 capitalize">${item}</span>
+                        <button onclick="borrarItem(${index})" class="text-red-500 bg-red-100 w-8 h-8 rounded-full flex items-center justify-center font-bold active:bg-red-200">X</button>
+                    </div>
+                `;
+            });
+        }
+
+        function borrarItem(index) {
+            inventario[cajaAbiertaActual].items.splice(index, 1);
+            guardarDatos();
+            renderItemsModal(); // Refrescar solo la lista
+        }
+
+        function añadirItemManual() {
+            const input = document.getElementById('modalNewItem');
+            const valor = input.value.trim();
+            if (valor) {
+                inventario[cajaAbiertaActual].items.push(valor);
+                guardarDatos();
+                input.value = '';
+                renderItemsModal();
+            }
+        }
+
+        // --- SISTEMA DE VOZ (Actualizado para el nuevo cerebro) ---
         const voiceBtn = document.getElementById('voiceBtn');
         const btnText = document.getElementById('btnText');
         const debugLog = document.getElementById('debugLog');
-        const searchInput = document.getElementById('searchInput');
-
-        let inventario = JSON.parse(localStorage.getItem('miInventario_v4')) || {};
+        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
 
         const palabrasANumeros = {
             "uno": 1, "una": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5, 
@@ -49,25 +196,6 @@
             "dieciséis": 16, "diecisiete": 17, "dieciocho": 18, "diecinueve": 19, "veinte": 20
         };
 
-        function render(filtro = "") {
-            boxGrid.innerHTML = '';
-            for (let i = 1; i <= 20; i++) {
-                const id = i < 10 ? '0' + i : i.toString();
-                const contenido = inventario[id] || "";
-                if (filtro && !contenido.toLowerCase().includes(filtro.toLowerCase()) && !id.includes(filtro)) continue;
-                
-                boxGrid.innerHTML += `
-                    <div class="bg-white p-5 rounded-[2rem] shadow-sm flex flex-col items-center text-center">
-                        <span class="text-xl opacity-30 mb-1">📦</span>
-                        <span class="text-[9px] font-black text-blue-500 uppercase">Caja ${id}</span>
-                        <p class="mt-2 text-[11px] text-slate-600 font-bold">${contenido || '<span class="text-slate-200">Vacia</span>'}</p>
-                    </div>
-                `;
-            }
-        }
-        render();
-
-        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (Speech) {
             const recognition = new Speech();
             recognition.lang = 'es-ES';
@@ -92,7 +220,7 @@
         }
 
         function procesarVoz(frase) {
-            debugLog.innerText = "Escuchado: " + frase;
+            debugLog.innerText = "Dictado: " + frase;
             let numEncontrado = null;
 
             const matchNumerico = frase.match(/\d+/);
@@ -114,19 +242,20 @@
                 objeto = objeto.replace(numEncontrado, '').replace(/caja/g, '').trim();
 
                 if (objeto.length > 1) {
-                    inventario[id] = (inventario[id] ? inventario[id] + ", " : "") + objeto;
-                    localStorage.setItem('miInventario_v4', JSON.stringify(inventario));
-                    render();
+                    // Múltiples objetos separados por "y" o "," (Opcional, pero ayuda)
+                    let itemsNuevos = objeto.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
+                    inventario[id].items.push(...itemsNuevos);
+                    
+                    guardarDatos();
+                    render(); // Actualizamos el fondo
+                    
+                    // Si tienes una caja abierta y dictas a esa misma caja, se refresca
+                    if(cajaAbiertaActual === id) renderItemsModal(); 
+                    
                     debugLog.innerText = "¡Guardado en caja " + id + "!";
-                } else {
-                    debugLog.innerText = "Dime qué objeto es (ej: martillo)";
                 }
-            } else {
-                debugLog.innerText = "No entendí el número (di del 1 al 20)";
             }
         }
-
-        searchInput.addEventListener('input', (e) => render(e.target.value));
     </script>
 </body>
 </html>
