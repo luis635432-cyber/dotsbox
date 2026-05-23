@@ -11,7 +11,6 @@
         .box-card:active { transform: scale(0.96); }
         .is-listening { animation: pulse 1.5s infinite; background-color: #ef4444 !important; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-        /* Ocultar barra de scroll en la ventana emergente */
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -19,11 +18,11 @@
 
     <header class="bg-white p-6 shadow-sm sticky top-0 z-20 flex justify-between items-center">
         <h1 class="text-xl font-black text-blue-600 tracking-tighter">MY BOXES 📦</h1>
-        <button onclick="if(confirm('¿Borrar TODO?')){localStorage.clear(); location.reload();}" class="text-[10px] bg-red-50 px-3 py-1 rounded-full text-red-400 font-bold">RESETEAR</button>
+        <button onclick="if(confirm('¿Borrar TODO y volver a 20 cajas?')){localStorage.clear(); location.reload();}" class="text-[10px] bg-red-50 px-3 py-1 rounded-full text-red-400 font-bold">RESETEAR</button>
     </header>
 
     <div class="p-4">
-        <input type="text" id="searchInput" placeholder="Buscar objeto o número..." class="w-full p-4 rounded-2xl bg-white border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-400 font-medium">
+        <input type="text" id="searchInput" placeholder="Buscar objeto, caja o número..." class="w-full p-4 rounded-2xl bg-white border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-400 font-medium">
     </div>
 
     <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4"></main>
@@ -48,8 +47,7 @@
                 <input type="text" id="modalCustomName" placeholder="Ej: Herramientas Pesadas" onchange="guardarNombreCaja(this.value)" class="w-full mt-1 p-3 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-400 font-semibold text-slate-700">
             </div>
 
-            <div class="flex-grow overflow-y-auto no-scrollbar mb-4 border-t border-b border-slate-100 py-4" id="modalItemsList">
-                </div>
+            <div class="flex-grow overflow-y-auto no-scrollbar mb-4 border-t border-b border-slate-100 py-4" id="modalItemsList"></div>
 
             <div class="flex gap-2 mb-2">
                 <input type="text" id="modalNewItem" placeholder="Añadir objeto a mano..." class="flex-grow p-3 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-400 text-sm">
@@ -59,51 +57,44 @@
     </div>
 
     <script>
-        // --- INICIALIZACIÓN Y DATOS ---
-        // Migramos los datos viejos (versión 4) al nuevo sistema (versión 5) para no perder nada.
-        let inventarioViejo = JSON.parse(localStorage.getItem('miInventario_v4'));
-        let inventario = JSON.parse(localStorage.getItem('miInventario_v5'));
+        // --- 1. GESTIÓN DE CAJAS DINÁMICAS ---
+        let totalCajas = parseInt(localStorage.getItem('miInventario_totalCajas')) || 20;
+        let inventario = JSON.parse(localStorage.getItem('miInventario_v5')) || {};
 
-        if (!inventario) {
-            inventario = {};
-            if (inventarioViejo) {
-                for (let id in inventarioViejo) {
-                    let contenidoStr = inventarioViejo[id];
-                    let itemsArray = contenidoStr ? contenidoStr.split(',').map(i => i.trim()).filter(i => i) : [];
-                    inventario[id] = { titulo: "", items: itemsArray };
-                }
-            } else {
-                for(let i=1; i<=20; i++) {
-                    let id = i < 10 ? '0'+i : i.toString();
-                    inventario[id] = { titulo: "", items: [] };
-                }
-            }
-            guardarDatos();
-        }
-
-        // Asegurarnos de que las 20 cajas existan en la base de datos
-        for(let i=1; i<=20; i++) {
+        // Asegurarse de que existan todas las cajas hasta el total actual
+        for(let i=1; i<=totalCajas; i++) {
             let id = i < 10 ? '0'+i : i.toString();
             if(!inventario[id]) inventario[id] = { titulo: "", items: [] };
         }
+        guardarDatos();
 
         function guardarDatos() {
             localStorage.setItem('miInventario_v5', JSON.stringify(inventario));
+            localStorage.setItem('miInventario_totalCajas', totalCajas);
         }
 
-        // --- RENDERIZAR LA PANTALLA PRINCIPAL ---
+        function añadirNuevaCaja() {
+            totalCajas++;
+            let id = totalCajas < 10 ? '0'+totalCajas : totalCajas.toString();
+            inventario[id] = { titulo: "", items: [] };
+            guardarDatos();
+            render();
+            // Hace un poco de scroll hacia abajo suavemente para ver la nueva caja
+            setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
+        }
+
+        // --- 2. RENDERIZADO DE PANTALLA ---
         const boxGrid = document.getElementById('boxGrid');
         const searchInput = document.getElementById('searchInput');
 
         function render(filtro = "") {
             boxGrid.innerHTML = '';
-            for (let i = 1; i <= 20; i++) {
+            for (let i = 1; i <= totalCajas; i++) {
                 const id = i < 10 ? '0' + i : i.toString();
                 const caja = inventario[id];
                 const contenidoTexto = caja.items.join(", ");
                 const tituloMostrar = caja.titulo ? caja.titulo : `CAJA ${id}`;
                 
-                // Lógica del buscador
                 if (filtro && !contenidoTexto.toLowerCase().includes(filtro.toLowerCase()) && 
                     !tituloMostrar.toLowerCase().includes(filtro.toLowerCase()) && 
                     !id.includes(filtro)) continue;
@@ -119,11 +110,21 @@
                     </div>
                 `;
             }
+
+            // Si no estamos buscando nada, mostramos el botón de añadir caja al final
+            if (!filtro) {
+                boxGrid.innerHTML += `
+                    <div onclick="añadirNuevaCaja()" class="box-card border-2 border-dashed border-slate-300 bg-slate-50/50 p-5 flex flex-col items-center justify-center text-center opacity-80 active:opacity-100 min-h-[140px]">
+                        <span class="text-3xl text-slate-400 mb-1">➕</span>
+                        <span class="text-[10px] font-black text-slate-500 uppercase">Crear Caja ${totalCajas + 1}</span>
+                    </div>
+                `;
+            }
         }
         render();
         searchInput.addEventListener('input', (e) => render(e.target.value));
 
-        // --- 🌟 LÓGICA DE LA VENTANA MODAL (FASE 1) 🌟 ---
+        // --- 3. LÓGICA DE VENTANA MODAL ---
         const modal = document.getElementById('boxModal');
         let cajaAbiertaActual = null;
 
@@ -138,7 +139,7 @@
         function cerrarModal() {
             modal.classList.add('hidden');
             cajaAbiertaActual = null;
-            render(searchInput.value); // Actualizar el fondo al cerrar
+            render(searchInput.value);
         }
 
         function guardarNombreCaja(nuevoNombre) {
@@ -169,7 +170,7 @@
         function borrarItem(index) {
             inventario[cajaAbiertaActual].items.splice(index, 1);
             guardarDatos();
-            renderItemsModal(); // Refrescar solo la lista
+            renderItemsModal();
         }
 
         function añadirItemManual() {
@@ -183,7 +184,7 @@
             }
         }
 
-        // --- SISTEMA DE VOZ (Actualizado para el nuevo cerebro) ---
+        // --- 4. SISTEMA DE VOZ ---
         const voiceBtn = document.getElementById('voiceBtn');
         const btnText = document.getElementById('btnText');
         const debugLog = document.getElementById('debugLog');
@@ -193,7 +194,9 @@
             "uno": 1, "una": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5, 
             "seis": 6, "siete": 7, "ocho": 8, "nueve": 9, "diez": 10,
             "once": 11, "doce": 12, "trece": 13, "catorce": 14, "quince": 15,
-            "dieciséis": 16, "diecisiete": 17, "dieciocho": 18, "diecinueve": 19, "veinte": 20
+            "dieciséis": 16, "diecisiete": 17, "dieciocho": 18, "diecinueve": 19, "veinte": 20,
+            "veintiuno": 21, "veintidós": 22, "veintitrés": 23, "veinticuatro": 24, "veinticinco": 25,
+            "veintiséis": 26, "veintisiete": 27, "veintiocho": 28, "veintinueve": 29, "treinta": 30
         };
 
         if (Speech) {
@@ -215,7 +218,7 @@
 
             recognition.onend = () => {
                 voiceBtn.classList.remove('is-listening');
-                btnText.innerText = "Toca y di: 'Caja 5 martillo' 🎤";
+                btnText.innerText = `Toca y di: "Caja ${totalCajas > 5 ? '5' : '1'} martillo" 🎤`;
             };
         }
 
@@ -235,25 +238,30 @@
                 }
             }
 
-            if (numEncontrado && numEncontrado <= 20) {
+            // Cambiado el límite fijo de 20 por el total de cajas dinámico
+            if (numEncontrado && numEncontrado <= totalCajas) {
                 let id = numEncontrado < 10 ? '0' + numEncontrado : numEncontrado.toString();
                 let objeto = frase;
                 for (let p in palabrasANumeros) { objeto = objeto.replace(p, ''); }
                 objeto = objeto.replace(numEncontrado, '').replace(/caja/g, '').trim();
 
                 if (objeto.length > 1) {
-                    // Múltiples objetos separados por "y" o "," (Opcional, pero ayuda)
                     let itemsNuevos = objeto.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
                     inventario[id].items.push(...itemsNuevos);
                     
                     guardarDatos();
-                    render(); // Actualizamos el fondo
+                    render();
                     
-                    // Si tienes una caja abierta y dictas a esa misma caja, se refresca
                     if(cajaAbiertaActual === id) renderItemsModal(); 
                     
                     debugLog.innerText = "¡Guardado en caja " + id + "!";
+                } else {
+                    debugLog.innerText = "Dime qué objeto es (ej: martillo)";
                 }
+            } else if (numEncontrado > totalCajas) {
+                debugLog.innerText = `La caja ${numEncontrado} no existe aún. Créala abajo.`;
+            } else {
+                debugLog.innerText = "No entendí el número de caja";
             }
         }
     </script>
