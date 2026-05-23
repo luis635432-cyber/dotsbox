@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inventario Inteligente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; font-family: system-ui, -apple-system, sans-serif; }
+        .box-card { transition: all 0.2s; border-radius: 2rem; }
+        .is-listening { animation: pulse 1.5s infinite; background-color: #ef4444 !important; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        #debugLog { font-size: 9px; opacity: 0.7; margin-top: 4px; font-weight: normal; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen pb-44">
+
+    <header class="bg-white p-6 shadow-sm sticky top-0 z-20 flex justify-between items-center">
+        <h1 class="text-xl font-black text-blue-600 tracking-tighter">MY BOXES 📦</h1>
+        <button onclick="if(confirm('¿Borrar todo?')){localStorage.clear(); location.reload();}" class="text-[10px] bg-red-50 px-3 py-1 rounded-full text-red-400 font-bold">RESETEAR</button>
+    </header>
+
+    <div class="p-4">
+        <input type="text" id="searchInput" placeholder="Buscar objeto o número..." class="w-full p-4 rounded-2xl bg-white border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-400">
+    </div>
+
+    <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4"></main>
+
+    <div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-100 to-transparent z-30">
+        <button id="voiceBtn" class="w-full bg-blue-600 text-white font-bold py-5 rounded-[2rem] shadow-2xl flex flex-col items-center justify-center active:bg-blue-800 transition-all">
+            <span id="btnText" class="text-lg">Toca y di: "Caja 5 martillo" 🎤</span>
+            <div id="debugLog">Sistema listo en tu servidor</div>
+        </button>
+    </div>
+
+    <script>
+        const boxGrid = document.getElementById('boxGrid');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const btnText = document.getElementById('btnText');
+        const debugLog = document.getElementById('debugLog');
+        const searchInput = document.getElementById('searchInput');
+
+        let inventario = JSON.parse(localStorage.getItem('miInventario_v4')) || {};
+
+        const palabrasANumeros = {
+            "uno": 1, "una": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5, 
+            "seis": 6, "siete": 7, "ocho": 8, "nueve": 9, "diez": 10,
+            "once": 11, "doce": 12, "trece": 13, "catorce": 14, "quince": 15,
+            "dieciséis": 16, "diecisiete": 17, "dieciocho": 18, "diecinueve": 19, "veinte": 20
+        };
+
+        function render(filtro = "") {
+            boxGrid.innerHTML = '';
+            for (let i = 1; i <= 20; i++) {
+                const id = i < 10 ? '0' + i : i.toString();
+                const contenido = inventario[id] || "";
+                if (filtro && !contenido.toLowerCase().includes(filtro.toLowerCase()) && !id.includes(filtro)) continue;
+                
+                boxGrid.innerHTML += `
+                    <div class="bg-white p-5 rounded-[2rem] shadow-sm flex flex-col items-center text-center">
+                        <span class="text-xl opacity-30 mb-1">📦</span>
+                        <span class="text-[9px] font-black text-blue-500 uppercase">Caja ${id}</span>
+                        <p class="mt-2 text-[11px] text-slate-600 font-bold">${contenido || '<span class="text-slate-200">Vacia</span>'}</p>
+                    </div>
+                `;
+            }
+        }
+        render();
+
+        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (Speech) {
+            const recognition = new Speech();
+            recognition.lang = 'es-ES';
+
+            voiceBtn.addEventListener('click', () => {
+                try {
+                    recognition.start();
+                    voiceBtn.classList.add('is-listening');
+                    btnText.innerText = "Escuchando...";
+                } catch (e) { recognition.stop(); }
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                procesarVoz(transcript);
+            };
+
+            recognition.onend = () => {
+                voiceBtn.classList.remove('is-listening');
+                btnText.innerText = "Toca y di: 'Caja 5 martillo' 🎤";
+            };
+        }
+
+        function procesarVoz(frase) {
+            debugLog.innerText = "Escuchado: " + frase;
+            let numEncontrado = null;
+
+            const matchNumerico = frase.match(/\d+/);
+            if (matchNumerico) {
+                numEncontrado = parseInt(matchNumerico[0]);
+            } else {
+                for (let palabra in palabrasANumeros) {
+                    if (frase.includes(palabra)) {
+                        numEncontrado = palabrasANumeros[palabra];
+                        break;
+                    }
+                }
+            }
+
+            if (numEncontrado && numEncontrado <= 20) {
+                let id = numEncontrado < 10 ? '0' + numEncontrado : numEncontrado.toString();
+                let objeto = frase;
+                for (let p in palabrasANumeros) { objeto = objeto.replace(p, ''); }
+                objeto = objeto.replace(numEncontrado, '').replace(/caja/g, '').trim();
+
+                if (objeto.length > 1) {
+                    inventario[id] = (inventario[id] ? inventario[id] + ", " : "") + objeto;
+                    localStorage.setItem('miInventario_v4', JSON.stringify(inventario));
+                    render();
+                    debugLog.innerText = "¡Guardado en caja " + id + "!";
+                } else {
+                    debugLog.innerText = "Dime qué objeto es (ej: martillo)";
+                }
+            } else {
+                debugLog.innerText = "No entendí el número (di del 1 al 20)";
+            }
+        }
+
+        searchInput.addEventListener('input', (e) => render(e.target.value));
+    </script>
+</body>
+</html>
