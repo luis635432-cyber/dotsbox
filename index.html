@@ -9,12 +9,13 @@
         body { -webkit-tap-highlight-color: transparent; font-family: system-ui, -apple-system, sans-serif; }
         .box-card { transition: all 0.2s; border-radius: 2rem; cursor: pointer; }
         .box-card:active { transform: scale(0.96); }
-        .is-listening { animation: pulse 1.5s infinite; background-color: #ef4444 !important; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        /* Animación de escucha suave para el mini-botón */
+        .is-listening { animation: pulse 1.5s infinite; background-color: #fecaca !important; color: #ef4444 !important; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen pb-44">
+<body class="bg-slate-100 min-h-screen pb-10">
 
     <header class="bg-white p-6 shadow-sm sticky top-0 z-20 flex justify-between items-center">
         <h1 class="text-xl font-black text-blue-600 tracking-tighter">MY BOXES 📦</h1>
@@ -22,7 +23,7 @@
     </header>
 
     <div class="p-4 pb-2">
-        <input type="text" id="searchInput" placeholder="Buscar objeto, caja o número..." class="w-full p-4 rounded-2xl bg-white border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-400 font-medium">
+        <input type="text" id="searchInput" placeholder="Buscar objeto o caja..." class="w-full p-4 rounded-2xl bg-white border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-400 font-medium transition-all">
     </div>
 
     <div class="px-4 pb-2 flex gap-3 justify-between items-center text-xs">
@@ -36,13 +37,6 @@
     </div>
 
     <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4"></main>
-
-    <div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-100 via-slate-100 to-transparent z-10">
-        <button id="voiceBtn" class="w-full bg-blue-600 text-white font-bold py-5 rounded-[2rem] shadow-2xl flex flex-col items-center justify-center active:bg-blue-800 transition-all">
-            <span id="btnText" class="text-lg">Toca y di: "Caja 5 martillo" 🎤</span>
-            <div id="debugLog" class="text-[9px] opacity-70 font-normal mt-1">Sistema de voz listo</div>
-        </button>
-    </div>
 
     <div id="boxModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-end sm:items-center justify-center transition-opacity">
         <div class="bg-white w-full sm:w-96 rounded-t-3xl sm:rounded-3xl p-6 h-[85vh] sm:h-auto flex flex-col shadow-2xl relative">
@@ -59,15 +53,22 @@
 
             <div class="flex-grow overflow-y-auto no-scrollbar mb-4 border-t border-b border-slate-100 py-4" id="modalItemsList"></div>
 
-            <div class="flex gap-2 mb-2">
-                <input type="text" id="modalNewItem" placeholder="Añadir objeto a mano..." class="flex-grow p-3 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-400 text-sm">
-                <button onclick="añadirItemManual()" class="bg-blue-600 text-white px-4 rounded-xl font-bold active:bg-blue-800">✚</button>
+            <div class="flex gap-2 items-center mb-1">
+                <input type="text" id="modalNewItem" placeholder="Escribir objeto..." class="flex-grow p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-400 text-sm font-medium">
+                
+                <button id="modalVoiceBtn" class="bg-slate-100 text-slate-500 w-12 h-12 rounded-xl flex items-center justify-center active:bg-slate-200 transition-all">
+                    <span id="modalMicIcon" class="text-xl">🎤</span>
+                </button>
+                
+                <button onclick="añadirItemManual()" class="bg-blue-600 text-white w-12 h-12 rounded-xl font-bold text-lg active:bg-blue-800 transition-all">✚</button>
             </div>
+            <div id="modalDebugLog" class="text-[9px] text-slate-400 text-center hidden">Listo</div>
+
         </div>
     </div>
 
     <script>
-        // --- GESTIÓN DE CONFIGURACIÓN Y CAJAS ---
+        // --- 1. GESTIÓN DE CONFIGURACIÓN Y CAJAS ---
         let totalCajas = parseInt(localStorage.getItem('miInventario_totalCajas')) || 20;
         let inventario = JSON.parse(localStorage.getItem('miInventario_v5')) || {};
 
@@ -94,7 +95,7 @@
             setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
         }
 
-        // --- RENDERIZADO ---
+        // --- 2. RENDERIZADO ---
         const boxGrid = document.getElementById('boxGrid');
         const searchInput = document.getElementById('searchInput');
 
@@ -134,7 +135,7 @@
         render();
         searchInput.addEventListener('input', (e) => render(e.target.value));
 
-        // --- LÓGICA DE VENTANA MODAL ---
+        // --- 3. LÓGICA DE VENTANA MODAL ---
         const modal = document.getElementById('boxModal');
         let cajaAbiertaActual = null;
 
@@ -147,6 +148,8 @@
         }
 
         function cerrarModal() {
+            // Asegurarnos de parar la escucha si se cierra el modal a mitad
+            if(Speech && recognition) recognition.stop(); 
             modal.classList.add('hidden');
             cajaAbiertaActual = null;
             render(searchInput.value);
@@ -187,37 +190,31 @@
             const input = document.getElementById('modalNewItem');
             const valor = input.value.trim();
             if (valor) {
-                inventario[cajaAbiertaActual].items.push(valor);
+                // Soportar también añadir múltiples objetos separados por "y" o "," a mano
+                let itemsNuevos = valor.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
+                inventario[cajaAbiertaActual].items.push(...itemsNuevos);
                 guardarDatos();
                 input.value = '';
                 renderItemsModal();
             }
         }
 
-        // --- 🌟 FASE 2: FUNCIONES DEL BÚNKER (EXPORTAR / IMPORTAR) 🌟 ---
+        // --- 4. FUNCIONES DEL BÚNKER (EXPORTAR / IMPORTAR) ---
         function exportarBackup() {
             const dataBackup = {
                 inventario: inventario,
                 totalCajas: totalCajas,
                 exportadoEn: new Date().toISOString()
             };
-            
             const jsonString = JSON.stringify(dataBackup, null, 2);
             const blob = new Blob([jsonString], { type: "application/json" });
             const url = URL.createObjectURL(blob);
-            
-            // Creamos un enlace de descarga temporal
             const enlace = document.createElement('a');
             enlace.href = url;
-            
-            // Formateamos la fecha actual para el nombre del archivo (ej: dotsbox_backup_2026-05-24.json)
             const fecha = new Date().toISOString().split('T')[0];
             enlace.download = `dotsbox_backup_${fecha}.json`;
-            
             document.body.appendChild(enlace);
             enlace.click();
-            
-            // Limpieza de memoria
             document.body.removeChild(enlace);
             URL.revokeObjectURL(url);
         }
@@ -225,110 +222,90 @@
         function importarBackup(event) {
             const archivo = event.target.files[0];
             if (!archivo) return;
-
             const lector = new FileReader();
             lector.onload = function(e) {
                 try {
                     const datosParseados = JSON.parse(e.target.result);
-                    
-                    // Verificación de seguridad para asegurar que es un archivo válido de nuestra app
                     if (datosParseados.inventario && datosParseados.totalCajas) {
-                        if(confirm('¿Estás seguro? Esto reemplazará todo tu inventario actual por el del archivo.')) {
+                        if(confirm('¿Estás seguro? Esto reemplazará todo tu inventario actual.')) {
                             inventario = datosParseados.inventario;
                             totalCajas = parseInt(datosParseados.totalCajas);
-                            
-                            verificarEstructuraCajas(); // Por seguridad
+                            verificarEstructuraCajas();
                             guardarDatos();
                             render();
-                            
-                            alert('¡Copia de seguridad restaurada con éxito! 🥳🎉');
+                            alert('¡Copia de seguridad restaurada con éxito! 🥳');
                         }
-                    } else {
-                        alert('Error: El archivo seleccionado no tiene el formato correcto de Dotsbox.');
-                    }
-                } catch (err) {
-                    alert('Error crítico al leer el archivo JSON. Asegúrate de elegir un respaldo válido.');
-                }
-                // Limpiar el input para permitir subir el mismo archivo seguidamente si se desea
+                    } else { alert('Error: Formato de archivo inválido.'); }
+                } catch (err) { alert('Error crítico al leer el archivo.'); }
                 event.target.value = '';
             };
             lector.readAsText(archivo);
         }
 
-        // --- SISTEMA DE VOZ ---
-        const voiceBtn = document.getElementById('voiceBtn');
-        const btnText = document.getElementById('btnText');
-        const debugLog = document.getElementById('debugLog');
+        // --- 🌟 5. NUEVO SISTEMA DE VOZ INTEGRADO EN CAJAS 🌟 ---
+        const modalVoiceBtn = document.getElementById('modalVoiceBtn');
+        const modalMicIcon = document.getElementById('modalMicIcon');
+        const modalDebugLog = document.getElementById('modalDebugLog');
         const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-        const palabrasANumeros = {
-            "uno": 1, "una": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5, 
-            "seis": 6, "siete": 7, "ocho": 8, "nueve": 9, "diez": 10,
-            "once": 11, "doce": 12, "trece": 13, "catorce": 14, "quince": 15,
-            "dieciséis": 16, "diecisiete": 17, "dieciocho": 18, "diecinueve": 19, "veinte": 20,
-            "veintiuno": 21, "veintidós": 22, "veintitrés": 23, "veinticuatro": 24, "veinticinco": 25,
-            "veintiséis": 26, "veintisiete": 27, "veintiocho": 28, "veintinueve": 29, "treinta": 30
-        };
+        let recognition;
 
         if (Speech) {
-            const recognition = new Speech();
+            recognition = new Speech();
             recognition.lang = 'es-ES';
+            recognition.continuous = false; // Parar tras una frase
 
-            voiceBtn.addEventListener('click', () => {
-                try {
-                    recognition.start();
-                    voiceBtn.classList.add('is-listening');
-                    btnText.innerText = "Escuchando...";
-                } catch (e) { recognition.stop(); }
+            // Clic en el micrófono de la caja abierta
+            modalVoiceBtn.addEventListener('click', () => {
+                if (cajaAbiertaActual) {
+                    try {
+                        recognition.start();
+                        // Feedback visual suave de escucha
+                        modalVoiceBtn.classList.add('is-listening');
+                        modalMicIcon.innerText = "🛑"; // Cambiar a stop
+                        modalDebugLog.innerText = "Escuchando objeto(s)...";
+                        modalDebugLog.classList.remove('hidden');
+                    } catch (e) { recognition.stop(); }
+                }
             });
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript.toLowerCase();
-                procesarVoz(transcript);
+                const transcript = event.results[0][0].transcript.trim().toLowerCase();
+                
+                if (cajaAbiertaActual && transcript.length > 1) {
+                    modalDebugLog.innerText = "Entendido: " + transcript;
+                    
+                    // Procesar la frase directly como objeto(s)
+                    // Soportamos múltiples objetos separados por "y", ",", "e"
+                    let itemsNuevos = transcript.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
+                    
+                    // Guardar directamente en la caja abierta
+                    inventario[cajaAbiertaActual].items.push(...itemsNuevos);
+                    guardarDatos();
+                    renderItemsModal(); // Refrescar la lista de la caja
+                    
+                    // Pequeño feedback visual de guardado correcto
+                    modalDebugLog.innerText = `¡Guardado: ${itemsNuevos.join(", ")}!`;
+                    setTimeout(() => modalDebugLog.classList.add('hidden'), 2000);
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error(event.error);
+                modalDebugLog.innerText = "Error: " + event.error;
+                stopListeningVisuals();
             };
 
             recognition.onend = () => {
-                voiceBtn.classList.remove('is-listening');
-                btnText.innerText = `Toca y di: "Caja ${totalCajas > 5 ? '5' : '1'} martillo" 🎤`;
+                stopListeningVisuals();
             };
-        }
 
-        function procesarVoz(frase) {
-            debugLog.innerText = "Dictado: " + frase;
-            let numEncontrado = null;
-
-            const matchNumerico = frase.match(/\d+/);
-            if (matchNumerico) {
-                numEncontrado = parseInt(matchNumerico[0]);
-            } else {
-                for (let palabra in palabrasANumeros) {
-                    if (frase.includes(palabra)) {
-                        numEncontrado = palabrasANumeros[palabra];
-                        break;
-                    }
-                }
+            function stopListeningVisuals() {
+                modalVoiceBtn.classList.remove('is-listening');
+                modalMicIcon.innerText = "🎤";
             }
-
-            if (numEncontrado && numEncontrado <= totalCajas) {
-                let id = numEncontrado < 10 ? '0' + numEncontrado : numEncontrado.toString();
-                let objeto = frase;
-                for (let p in palabrasANumeros) { objeto = objeto.replace(p, ''); }
-                objeto = objeto.replace(numEncontrado, '').replace(/caja/g, '').trim();
-
-                if (objeto.length > 1) {
-                    let itemsNuevos = objeto.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
-                    inventario[id].items.push(...itemsNuevos);
-                    
-                    guardarDatos();
-                    render();
-                    
-                    if(cajaAbiertaActual === id) renderItemsModal(); 
-                    
-                    debugLog.innerText = "¡Guardado en caja " + id + "!";
-                }
-            } else if (numEncontrado > totalCajas) {
-                debugLog.innerText = `La caja ${numEncontrado} no existe aún. Créala abajo.`;
-            }
+        } else {
+            // Si el iPhone no soporta voz en esta vista, ocultamos el micro
+            modalVoiceBtn.style.display = 'none';
         }
     </script>
 </body>
