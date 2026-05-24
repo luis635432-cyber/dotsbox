@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inventario Pro</title>
+    <title>Dotsbox Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: system-ui, -apple-system, sans-serif; }
@@ -18,11 +18,21 @@
 
     <header class="bg-white p-6 shadow-sm sticky top-0 z-20 flex justify-between items-center">
         <h1 class="text-xl font-black text-blue-600 tracking-tighter">MY BOXES 📦</h1>
-        <button onclick="if(confirm('¿Borrar TODO y volver a 20 cajas?')){localStorage.clear(); location.reload();}" class="text-[10px] bg-red-50 px-3 py-1 rounded-full text-red-400 font-bold">RESETEAR</button>
+        <button onclick="if(confirm('¿Borrar TODO y volver a 20 cajas vacías?')){localStorage.clear(); location.reload();}" class="text-[10px] bg-red-50 px-3 py-1 rounded-full text-red-400 font-bold">RESETEAR</button>
     </header>
 
-    <div class="p-4">
+    <div class="p-4 pb-2">
         <input type="text" id="searchInput" placeholder="Buscar objeto, caja o número..." class="w-full p-4 rounded-2xl bg-white border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-400 font-medium">
+    </div>
+
+    <div class="px-4 pb-2 flex gap-3 justify-between items-center text-xs">
+        <button onclick="exportarBackup()" class="flex-1 bg-white text-slate-700 py-3 px-4 rounded-2xl shadow-sm font-bold border border-slate-200/60 active:bg-slate-50 flex items-center justify-center gap-2 transition-all">
+            <span class="text-base">📤</span> Exportar Copia
+        </button>
+        <button onclick="document.getElementById('importInput').click()" class="flex-1 bg-white text-slate-700 py-3 px-4 rounded-2xl shadow-sm font-bold border border-slate-200/60 active:bg-slate-50 flex items-center justify-center gap-2 transition-all">
+            <span class="text-base">📥</span> Importar Copia
+        </button>
+        <input type="file" id="importInput" accept=".json" class="hidden" onchange="importarBackup(event)">
     </div>
 
     <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4"></main>
@@ -57,15 +67,17 @@
     </div>
 
     <script>
-        // --- 1. GESTIÓN DE CAJAS DINÁMICAS ---
+        // --- GESTIÓN DE CONFIGURACIÓN Y CAJAS ---
         let totalCajas = parseInt(localStorage.getItem('miInventario_totalCajas')) || 20;
         let inventario = JSON.parse(localStorage.getItem('miInventario_v5')) || {};
 
-        // Asegurarse de que existan todas las cajas hasta el total actual
-        for(let i=1; i<=totalCajas; i++) {
-            let id = i < 10 ? '0'+i : i.toString();
-            if(!inventario[id]) inventario[id] = { titulo: "", items: [] };
+        function verificarEstructuraCajas() {
+            for(let i=1; i<=totalCajas; i++) {
+                let id = i < 10 ? '0'+i : i.toString();
+                if(!inventario[id]) inventario[id] = { titulo: "", items: [] };
+            }
         }
+        verificarEstructuraCajas();
         guardarDatos();
 
         function guardarDatos() {
@@ -79,11 +91,10 @@
             inventario[id] = { titulo: "", items: [] };
             guardarDatos();
             render();
-            // Hace un poco de scroll hacia abajo suavemente para ver la nueva caja
             setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
         }
 
-        // --- 2. RENDERIZADO DE PANTALLA ---
+        // --- RENDERIZADO ---
         const boxGrid = document.getElementById('boxGrid');
         const searchInput = document.getElementById('searchInput');
 
@@ -111,7 +122,6 @@
                 `;
             }
 
-            // Si no estamos buscando nada, mostramos el botón de añadir caja al final
             if (!filtro) {
                 boxGrid.innerHTML += `
                     <div onclick="añadirNuevaCaja()" class="box-card border-2 border-dashed border-slate-300 bg-slate-50/50 p-5 flex flex-col items-center justify-center text-center opacity-80 active:opacity-100 min-h-[140px]">
@@ -124,7 +134,7 @@
         render();
         searchInput.addEventListener('input', (e) => render(e.target.value));
 
-        // --- 3. LÓGICA DE VENTANA MODAL ---
+        // --- LÓGICA DE VENTANA MODAL ---
         const modal = document.getElementById('boxModal');
         let cajaAbiertaActual = null;
 
@@ -184,7 +194,68 @@
             }
         }
 
-        // --- 4. SISTEMA DE VOZ ---
+        // --- 🌟 FASE 2: FUNCIONES DEL BÚNKER (EXPORTAR / IMPORTAR) 🌟 ---
+        function exportarBackup() {
+            const dataBackup = {
+                inventario: inventario,
+                totalCajas: totalCajas,
+                exportadoEn: new Date().toISOString()
+            };
+            
+            const jsonString = JSON.stringify(dataBackup, null, 2);
+            const blob = new Blob([jsonString], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            // Creamos un enlace de descarga temporal
+            const enlace = document.createElement('a');
+            enlace.href = url;
+            
+            // Formateamos la fecha actual para el nombre del archivo (ej: dotsbox_backup_2026-05-24.json)
+            const fecha = new Date().toISOString().split('T')[0];
+            enlace.download = `dotsbox_backup_${fecha}.json`;
+            
+            document.body.appendChild(enlace);
+            enlace.click();
+            
+            // Limpieza de memoria
+            document.body.removeChild(enlace);
+            URL.revokeObjectURL(url);
+        }
+
+        function importarBackup(event) {
+            const archivo = event.target.files[0];
+            if (!archivo) return;
+
+            const lector = new FileReader();
+            lector.onload = function(e) {
+                try {
+                    const datosParseados = JSON.parse(e.target.result);
+                    
+                    // Verificación de seguridad para asegurar que es un archivo válido de nuestra app
+                    if (datosParseados.inventario && datosParseados.totalCajas) {
+                        if(confirm('¿Estás seguro? Esto reemplazará todo tu inventario actual por el del archivo.')) {
+                            inventario = datosParseados.inventario;
+                            totalCajas = parseInt(datosParseados.totalCajas);
+                            
+                            verificarEstructuraCajas(); // Por seguridad
+                            guardarDatos();
+                            render();
+                            
+                            alert('¡Copia de seguridad restaurada con éxito! 🥳🎉');
+                        }
+                    } else {
+                        alert('Error: El archivo seleccionado no tiene el formato correcto de Dotsbox.');
+                    }
+                } catch (err) {
+                    alert('Error crítico al leer el archivo JSON. Asegúrate de elegir un respaldo válido.');
+                }
+                // Limpiar el input para permitir subir el mismo archivo seguidamente si se desea
+                event.target.value = '';
+            };
+            lector.readAsText(archivo);
+        }
+
+        // --- SISTEMA DE VOZ ---
         const voiceBtn = document.getElementById('voiceBtn');
         const btnText = document.getElementById('btnText');
         const debugLog = document.getElementById('debugLog');
@@ -238,7 +309,6 @@
                 }
             }
 
-            // Cambiado el límite fijo de 20 por el total de cajas dinámico
             if (numEncontrado && numEncontrado <= totalCajas) {
                 let id = numEncontrado < 10 ? '0' + numEncontrado : numEncontrado.toString();
                 let objeto = frase;
@@ -255,13 +325,9 @@
                     if(cajaAbiertaActual === id) renderItemsModal(); 
                     
                     debugLog.innerText = "¡Guardado en caja " + id + "!";
-                } else {
-                    debugLog.innerText = "Dime qué objeto es (ej: martillo)";
                 }
             } else if (numEncontrado > totalCajas) {
                 debugLog.innerText = `La caja ${numEncontrado} no existe aún. Créala abajo.`;
-            } else {
-                debugLog.innerText = "No entendí el número de caja";
             }
         }
     </script>
