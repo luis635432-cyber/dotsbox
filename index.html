@@ -14,7 +14,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-24">
+<body class="bg-slate-50 min-h-screen pb-28">
 
     <header class="bg-white/80 backdrop-blur-md p-6 shadow-sm sticky top-0 z-20 flex justify-center items-center">
         <h1 class="text-xl font-black text-blue-600 tracking-tighter">DOTSBOX 📦</h1>
@@ -25,20 +25,44 @@
             <input type="text" id="searchInput" placeholder="Buscar objeto o caja..." class="w-full p-4 rounded-2xl bg-white border border-slate-100 shadow-sm outline-none focus:ring-2 focus:ring-blue-400 font-medium transition-all text-slate-700">
         </div>
 
+        <div id="filterIndicator" class="px-4 pb-2 hidden">
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 flex justify-between items-center text-xs font-bold text-blue-700">
+                <span id="filterIndicatorText">📍 Mostrando solo: Despacho</span>
+                <button onclick="quitarFiltroZona()" class="bg-blue-200/60 text-blue-800 px-3 py-1 rounded-lg">Ver todas</button>
+            </div>
+        </div>
+
         <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4"></main>
     </div>
 
 
+    <div id="view-zonas" class="hidden p-4">
+        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 ml-2">¿Dónde vas a buscar?</h2>
+        <div id="zonasGrid" class="flex flex-col gap-3">
+            </div>
+    </div>
+
+
     <div id="view-ajustes" class="hidden p-4">
-        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Copias e Informes</h2>
         
+        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Tus Zonas / Habitaciones</h2>
+        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 mb-6">
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="newZoneInput" placeholder="Ej: Garaje, Coche, Buhardilla..." class="flex-grow p-3 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-400 text-sm font-medium">
+                <button onclick="crearNuevaZona()" class="bg-blue-600 text-white px-5 rounded-xl font-bold active:bg-blue-800">✚</button>
+            </div>
+            <div id="listaZonasAjustes" class="flex flex-col gap-2">
+                </div>
+        </div>
+
+        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Copias e Informes</h2>
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
             <button onclick="exportarBackup()" class="w-full p-5 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 transition-all">
                 <div class="flex items-center gap-4">
                     <div class="bg-blue-100 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">📤</div>
                     <div class="text-left">
                         <p class="font-bold text-slate-700">Exportar Copia (.json)</p>
-                        <p class="text-[11px] text-slate-400">El seguro de vida de la app para restaurar datos</p>
+                        <p class="text-[11px] text-slate-400">Copia completa para restaurar la app en otro móvil</p>
                     </div>
                 </div>
                 <span class="text-slate-300">❯</span>
@@ -49,7 +73,7 @@
                     <div class="bg-green-100 text-green-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">📊</div>
                     <div class="text-left">
                         <p class="font-bold text-slate-700">Exportar a Excel (.csv)</p>
-                        <p class="text-[11px] text-slate-400">Lista limpia para leer, imprimir o editar en PC</p>
+                        <p class="text-[11px] text-slate-400">Incluye columna de ubicación para control total</p>
                     </div>
                 </div>
                 <span class="text-slate-300">❯</span>
@@ -60,7 +84,7 @@
                     <div class="bg-indigo-100 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">📥</div>
                     <div class="text-left">
                         <p class="font-bold text-slate-700">Importar Copia</p>
-                        <p class="text-[11px] text-slate-400">Restaura tus cajas desde tu archivo .json</p>
+                        <p class="text-[11px] text-slate-400">Restaura tus datos desde un archivo .json</p>
                     </div>
                 </div>
                 <span class="text-slate-300">❯</span>
@@ -70,21 +94,26 @@
 
         <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Zona de Peligro</h2>
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-            <button onclick="if(confirm('¿Borrar TODO y volver a 20 cajas vacías?')){localStorage.clear(); location.reload();}" class="w-full p-5 flex items-center gap-4 active:bg-red-50 transition-all">
+            <button onclick="if(confirm('¿Borrar TODO? Se restablecerán las zonas de fábrica.')){localStorage.clear(); location.reload();}" class="w-full p-5 flex items-center gap-4 active:bg-red-50 transition-all">
                 <div class="bg-red-100 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">🗑️</div>
                 <div class="text-left">
                     <p class="font-bold text-red-600">Resetear Aplicación</p>
-                    <p class="text-[11px] text-slate-400">Borra todo el inventario actual de la memoria</p>
+                    <p class="text-[11px] text-slate-400">Borra todo el inventario y reinicia la memoria</p>
                 </div>
             </button>
         </div>
     </div>
 
 
-    <nav class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200 pb-safe pt-2 px-6 flex justify-around z-30 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] h-20">
+    <nav class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200 pb-safe pt-2 px-2 flex justify-around z-30 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] h-20">
         <button onclick="cambiarPestana('almacen')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
             <span id="tab-icon-almacen" class="text-2xl grayscale-0 opacity-100 transition-all">📦</span>
             <span id="tab-text-almacen" class="text-[10px] font-bold text-blue-600 transition-colors">Almacén</span>
+        </button>
+
+        <button onclick="cambiarPestana('zonas')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
+            <span id="tab-icon-zonas" class="text-2xl grayscale opacity-40 transition-all">🗺️</span>
+            <span id="tab-text-zonas" class="text-[10px] font-bold text-slate-400 transition-colors">Zonas</span>
         </button>
         
         <button onclick="cambiarPestana('ajustes')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
@@ -102,9 +131,15 @@
                 <button onclick="cerrarModal()" class="bg-slate-100 text-slate-500 w-10 h-10 rounded-full font-bold text-lg active:bg-slate-200">X</button>
             </div>
 
-            <div class="mb-4">
+            <div class="mb-3">
                 <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nombre de esta caja:</label>
                 <input type="text" id="modalCustomName" placeholder="Ej: Herramientas Pesadas" onchange="guardarNombreCaja(this.value)" class="w-full mt-1 p-3 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-400 font-semibold text-slate-700">
+            </div>
+
+            <div class="mb-4">
+                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Ubicación / Habitación:</label>
+                <select id="modalZonaSelect" onchange="guardarZonaCaja(this.value)" class="w-full mt-1 p-3 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-400 font-semibold text-slate-700 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a0aec0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_solid] bg-[right_15px_center] bg-no-repeat">
+                    </select>
             </div>
 
             <div class="flex-grow overflow-y-auto no-scrollbar mb-4 border-t border-b border-slate-100 py-4" id="modalItemsList"></div>
@@ -123,14 +158,20 @@
     </div>
 
     <script>
-        // --- GESTIÓN DE CONFIGURACIÓN Y CAJAS ---
+        // --- 1. MEMORIA Y ESTRUCTURA DE DATOS ---
         let totalCajas = parseInt(localStorage.getItem('miInventario_totalCajas')) || 20;
         let inventario = JSON.parse(localStorage.getItem('miInventario_v5')) || {};
+        
+        // Carga de zonas flexibles (Por defecto si no existen)
+        let listaZonas = JSON.parse(localStorage.getItem('miInventario_zonas')) || ["Despacho", "Trastero", "Dormitorio", "Armario"];
+        
+        let filtroZonaActual = ""; // Guarda si estamos filtrando por habitación desde la pestaña 2
 
         function verificarEstructuraCajas() {
             for(let i=1; i<=totalCajas; i++) {
                 let id = i < 10 ? '0'+i : i.toString();
-                if(!inventario[id]) inventario[id] = { titulo: "", items: [] };
+                if(!inventario[id]) inventario[id] = { titulo: "", items: [], zona: "" };
+                if(!inventario[id].zona) inventario[id].zona = ""; // Asegurar propiedad
             }
         }
         verificarEstructuraCajas();
@@ -139,45 +180,112 @@
         function guardarDatos() {
             localStorage.setItem('miInventario_v5', JSON.stringify(inventario));
             localStorage.setItem('miInventario_totalCajas', totalCajas);
+            localStorage.setItem('miInventario_zonas', JSON.stringify(listaZonas));
         }
 
         function añadirNuevaCaja() {
             totalCajas++;
             let id = totalCajas < 10 ? '0'+totalCajas : totalCajas.toString();
-            inventario[id] = { titulo: "", items: [] };
+            inventario[id] = { titulo: "", items: [], zona: "" };
             guardarDatos();
             render();
             setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
         }
 
-        // --- SISTEMA DE NAVEGACIÓN (TABS) ---
+        // --- 2. SISTEMA DE NAVEGACIÓN INTEGRAL ---
         function cambiarPestana(pestana) {
-            const vistaAlmacen = document.getElementById('view-almacen');
-            const vistaAjustes = document.getElementById('view-ajustes');
-            const textAlmacen = document.getElementById('tab-text-almacen');
-            const textAjustes = document.getElementById('tab-text-ajustes');
-            const iconAlmacen = document.getElementById('tab-icon-almacen');
-            const iconAjustes = document.getElementById('tab-icon-ajustes');
+            document.getElementById('view-almacen').classList.add('hidden');
+            document.getElementById('view-zonas').classList.add('hidden');
+            document.getElementById('view-ajustes').classList.add('hidden');
 
-            if (pestana === 'almacen') {
-                vistaAlmacen.classList.remove('hidden');
-                vistaAjustes.classList.add('hidden');
-                textAlmacen.className = "text-[10px] font-bold text-blue-600 transition-colors";
-                iconAlmacen.className = "text-2xl grayscale-0 opacity-100 transition-all";
-                textAjustes.className = "text-[10px] font-bold text-slate-400 transition-colors";
-                iconAjustes.className = "text-2xl grayscale opacity-40 transition-all";
-            } else {
-                vistaAlmacen.classList.add('hidden');
-                vistaAjustes.className = "hidden"; // Fix syntax/class
-                vistaAjustes.classList.remove('hidden');
-                textAjustes.className = "text-[10px] font-bold text-blue-600 transition-colors";
-                iconAjustes.className = "text-2xl grayscale-0 opacity-100 transition-all";
-                textAlmacen.className = "text-[10px] font-bold text-slate-400 transition-colors";
-                iconAlmacen.className = "text-2xl grayscale opacity-40 transition-all";
+            ["almacen", "zonas", "ajustes"].forEach(t => {
+                document.getElementById(`tab-text-${t}`).className = "text-[10px] font-bold text-slate-400 transition-colors";
+                document.getElementById(`tab-icon-${t}`).className = "text-2xl grayscale opacity-40 transition-all";
+            });
+
+            document.getElementById(`view-${pestana}`).classList.remove('hidden');
+            document.getElementById(`tab-text-${pestana}`).className = "text-[10px] font-bold text-blue-600 transition-colors";
+            document.getElementById(`tab-icon-${pestana}`).className = "text-2xl grayscale-0 opacity-100 transition-all";
+
+            if (pestana === 'almacen') render(searchInput.value);
+            if (pestana === 'zonas') renderZonasTab();
+            if (pestana === 'ajustes') renderZonasAjustes();
+        }
+
+        // --- 3. LÓGICA DE FILTRADO POR ZONA (PESTAÑA 2) ---
+        function renderZonasTab() {
+            const grid = document.getElementById('zonasGrid');
+            grid.innerHTML = '';
+
+            listaZonas.forEach(zona => {
+                // Contar cuántas cajas hay en esta habitación en este momento
+                let numCajasEnZona = Object.values(inventario).filter(c => c.zona === zona).length;
+
+                grid.innerHTML += `
+                    <button onclick="filtrarPorZona('${zona}')" class="w-full bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center active:bg-slate-50 transition-all">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">📍</span>
+                            <span class="font-bold text-slate-700 text-sm">${zona}</span>
+                        </div>
+                        <span class="text-xs bg-slate-100 text-slate-500 font-bold px-3 py-1 rounded-full">${numCajasEnZona} ${numCajasEnZona === 1 ? 'caja' : 'cajas'}</span>
+                    </button>
+                `;
+            });
+        }
+
+        function filtrarPorZona(zona) {
+            filtroZonaActual = zona;
+            document.getElementById('filterIndicatorText').innerText = `📍 Mostrando solo: ${zona}`;
+            document.getElementById('filterIndicator').classList.remove('hidden');
+            cambiarPestana('almacen');
+        }
+
+        function quitarFiltroZona() {
+            filtroZonaActual = "";
+            document.getElementById('filterIndicator').classList.add('hidden');
+            render(searchInput.value);
+        }
+
+        // --- 4. GESTIÓN DE CREACIÓN DE ZONAS (PESTAÑA 3) ---
+        function renderZonasAjustes() {
+            const lista = document.getElementById('listaZonasAjustes');
+            lista.innerHTML = '';
+
+            listaZonas.forEach((zona, idx) => {
+                lista.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span class="text-sm font-semibold text-slate-600">📍 ${zona}</span>
+                        <button onclick="eliminarZona(${idx})" class="text-red-500 font-bold px-2 active:scale-110 transition-transform">✕</button>
+                    </div>
+                `;
+            });
+        }
+
+        function crearNuevaZona() {
+            const input = document.getElementById('newZoneInput');
+            const valor = input.value.trim();
+            if(valor && !listaZonas.includes(valor)) {
+                listaZonas.push(valor);
+                guardarDatos();
+                input.value = '';
+                renderZonasAjustes();
             }
         }
 
-        // --- RENDERIZADO DE CAJAS ---
+        function eliminarZona(idx) {
+            const zonaBorrada = listaZonas[idx];
+            if(confirm(`¿Seguro que quieres borrar la zona "${zonaBorrada}"? Las cajas de este sitio pasarán a estar sin asignar.`)) {
+                // Desvincular las cajas de esa zona
+                for(let id in inventario) {
+                    if(inventario[id].zona === zonaBorrada) inventario[id].zona = "";
+                }
+                listaZonas.splice(idx, 1);
+                guardarDatos();
+                renderZonasAjustes();
+            }
+        }
+
+        // --- 5. RENDERIZADO DE CAJAS (PANTALLA PRINCIPAL) ---
         const boxGrid = document.getElementById('boxGrid');
         const searchInput = document.getElementById('searchInput');
 
@@ -189,35 +297,45 @@
                 const contenidoTexto = caja.items.join(", ");
                 const tituloMostrar = caja.titulo ? caja.titulo : `CAJA ${id}`;
                 
+                // Filtro 1: Pestaña de zonas activa
+                if (filtroZonaActual && caja.zona !== filtroZonaActual) continue;
+
+                // Filtro 2: Barra de buscador manual
                 if (filtro && !contenidoTexto.toLowerCase().includes(filtro.toLowerCase()) && 
                     !tituloMostrar.toLowerCase().includes(filtro.toLowerCase()) && 
-                    !id.includes(filtro)) continue;
+                    !id.includes(filtro) && !caja.zona.toLowerCase().includes(filtro.toLowerCase())) continue;
                 
                 boxGrid.innerHTML += `
-                    <div onclick="abrirModal('${id}')" class="box-card bg-white p-5 shadow-sm border border-slate-100 flex flex-col items-center text-center">
-                        <span class="text-2xl opacity-40 mb-2">📦</span>
+                    <div onclick="abrirModal('${id}')" class="box-card bg-white p-5 shadow-sm border border-slate-100 flex flex-col items-center text-center relative overflow-hidden">
+                        <span class="text-2xl opacity-40 mb-1">📦</span>
                         <span class="text-[10px] font-black text-blue-500 uppercase leading-tight">${tituloMostrar}</span>
-                        <p class="mt-2 text-[11px] text-slate-500 font-bold line-clamp-3">
-                            ${caja.items.length > 0 ? contenidoTexto : '<span class="text-slate-200">Vacía</span>'}
+                        
+                        ${caja.zona ? `<span class="mt-1 text-[8px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold truncate max-w-full">📍 ${caja.zona}</span>` : ''}
+                        
+                        <p class="mt-2 text-[11px] text-slate-400 font-semibold line-clamp-2">
+                            ${caja.items.length > 0 ? contenidoTexto : '<span class="text-slate-200 italic">Vacía</span>'}
                         </p>
                         ${caja.items.length > 0 ? `<div class="mt-2 text-[8px] bg-blue-50 text-blue-600 px-2 py-1 rounded-full font-bold">${caja.items.length} ítems</div>` : ''}
                     </div>
                 `;
             }
 
-            if (!filtro) {
+            if (!filtro && !filtroZonaActual) {
                 boxGrid.innerHTML += `
-                    <div onclick="añadirNuevaCaja()" class="box-card border-2 border-dashed border-slate-300 bg-slate-50/50 p-5 flex flex-col items-center justify-center text-center opacity-80 active:opacity-100 min-h-[140px]">
+                    <div onclick="addNuevaCaja()" class="box-card border-2 border-dashed border-slate-300 bg-slate-50/50 p-5 flex flex-col items-center justify-center text-center opacity-80 active:opacity-100 min-h-[140px]">
                         <span class="text-3xl text-slate-400 mb-1">➕</span>
                         <span class="text-[10px] font-black text-slate-500 uppercase">Crear Caja ${totalCajas + 1}</span>
                     </div>
                 `;
             }
         }
+        // Alias para compatibilidad de clics en el botón dinámico
+        function addNuevaCaja() { añadirNuevaCaja(); }
+        
         render();
         searchInput.addEventListener('input', (e) => render(e.target.value));
 
-        // --- LÓGICA DE VENTANA MODAL ---
+        // --- 6. LÓGICA DE VENTANA MODAL DE EDICIÓN ---
         const modal = document.getElementById('boxModal');
         let cajaAbiertaActual = null;
 
@@ -225,6 +343,15 @@
             cajaAbiertaActual = id;
             document.getElementById('modalTitle').innerText = `📦 CAJA ${id}`;
             document.getElementById('modalCustomName').value = inventario[id].titulo;
+            
+            // Rellenar el selector de ubicaciones con las zonas vivas
+            const select = document.getElementById('modalZonaSelect');
+            select.innerHTML = '<option value="">⚠️ Sin asignar (Elige sitio)</option>';
+            listaZonas.forEach(zona => {
+                const selected = inventario[id].zona === zona ? 'selected' : '';
+                select.innerHTML += `<option value="${zona}" ${selected}>📍 ${zona}</option>`;
+            });
+
             renderItemsModal();
             modal.classList.remove('hidden');
         }
@@ -238,6 +365,11 @@
 
         function guardarNombreCaja(nuevoNombre) {
             inventario[cajaAbiertaActual].titulo = nuevoNombre;
+            guardarDatos();
+        }
+
+        function guardarZonaCaja(nuevaZona) {
+            inventario[cajaAbiertaActual].zona = nuevaZona;
             guardarDatos();
         }
 
@@ -267,7 +399,6 @@
             renderItemsModal();
         }
 
-        // Entrada manual por botón ✚
         function añadirItemManual() {
             const input = document.getElementById('modalNewItem');
             const valor = input.value.trim();
@@ -280,11 +411,12 @@
             }
         }
 
-        // --- FUNCIONES DEL BÚNKER (EXPORTAR / IMPORTAR BACKUPS JSON) ---
+        // --- 7. EXPORTACIONES E INFORMES (JSON Y EXCEL CON UBICACIÓN) ---
         function exportarBackup() {
             const dataBackup = {
                 inventario: inventario,
                 totalCajas: totalCajas,
+                zonas: listaZonas,
                 exportadoEn: new Date().toISOString()
             };
             const jsonString = JSON.stringify(dataBackup, null, 2);
@@ -311,10 +443,11 @@
                         if(confirm('¿Estás seguro? Esto reemplazará todo tu inventario actual.')) {
                             inventario = datosParseados.inventario;
                             totalCajas = parseInt(datosParseados.totalCajas);
+                            if(datosParseados.zonas) listaZonas = datosParseados.zonas; // Cargar también las zonas guardadas
                             verificarEstructuraCajas();
                             guardarDatos();
                             render();
-                            alert('¡Copia de seguridad restaurada con éxito! 🥳');
+                            alert('¡Copia de seguridad y zonas restauradas con éxito! 🥳');
                         }
                     } else { alert('Error: Formato de archivo inválido.'); }
                 } catch (err) { alert('Error crítico al leer el archivo.'); }
@@ -323,43 +456,35 @@
             lector.readAsText(archivo);
         }
 
-        // --- 🌟 NUEVA FUNCIÓN: EXPORTAR A EXCEL (CSV EN ESPAÑOL) 🌟 ---
         function exportarExcel() {
-            // \uFEFF añade el BOM UTF-8 para que Excel en Windows lea bien acentos y eñes
-            let csvContent = "\uFEFF";
-            
-            // Cabecera de columnas separadas por punto y coma (Estándar Excel Europeo)
-            csvContent += "Caja;Identificador;Nombre Personalizado;Objetos Guardados;Cantidad\n";
+            let csvContent = "\uFEFF"; // BOM para acentos y eñes en Windows Excel
+            csvContent += "Caja;Identificador;Nombre Personalizado;Ubicación / Habitación;Objetos Guardados;Cantidad Total\n";
             
             for (let i = 1; i <= totalCajas; i++) {
                 const id = i < 10 ? '0' + i : i.toString();
                 const caja = inventario[id];
                 
-                // Limpiamos los textos de puntos y comas para no romper las columnas de Excel
                 const nombreCaja = caja.titulo ? caja.titulo.replace(/;/g, ",") : `Caja ${id}`;
+                const ubicacion = caja.zona ? caja.zona.replace(/;/g, ",") : "Sin asignar";
                 const listaObjetos = caja.items.length > 0 ? caja.items.join(", ").replace(/;/g, "-") : "Vacía";
                 const cantidad = caja.items.length;
                 
-                // Añadimos la fila entrecomillando los textos largos por seguridad
-                csvContent += `${i};"${id}";"${nombreCaja}";"${listaObjetos}";${cantidad} items\n`;
+                csvContent += `${i};"${id}";"${nombreCaja}";"${ubicacion}";"${listaObjetos}";${cantidad} items\n`;
             }
             
-            // Creamos el archivo y forzamos la descarga nativa en iOS/PC
             const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
             const url = URL.createObjectURL(blob);
             const enlace = document.createElement('a');
             enlace.href = url;
-            
             const fecha = new Date().toISOString().split('T')[0];
-            enlace.download = `dotsbox_excel_${fecha}.csv`;
-            
+            enlace.download = `dotsbox_inventario_${fecha}.csv`;
             document.body.appendChild(enlace);
             enlace.click();
             document.body.removeChild(enlace);
             URL.revokeObjectURL(url);
         }
 
-        // --- SISTEMA DE VOZ INTEGRADO EN CAJAS ---
+        // --- 8. SISTEMA DE VOZ DIRECTA ---
         const modalVoiceBtn = document.getElementById('modalVoiceBtn');
         const modalMicIcon = document.getElementById('modalMicIcon');
         const modalDebugLog = document.getElementById('modalDebugLog');
@@ -385,23 +510,17 @@
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript.trim().toLowerCase();
-                
                 if (cajaAbiertaActual && transcript.length > 1) {
                     let itemsNuevos = transcript.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
                     inventario[cajaAbiertaActual].items.push(...itemsNuevos);
                     guardarDatos();
                     renderItemsModal();
-                    
                     modalDebugLog.innerText = `¡Guardado: ${itemsNuevos.join(", ")}!`;
                     setTimeout(() => modalDebugLog.classList.add('hidden'), 2000);
                 }
             };
 
-            recognition.onerror = (event) => {
-                modalDebugLog.innerText = "Error: " + event.error;
-                stopListeningVisuals();
-            };
-
+            recognition.onerror = (event) => { stopListeningVisuals(); };
             recognition.onend = () => { stopListeningVisuals(); };
 
             function stopListeningVisuals() {
@@ -411,6 +530,30 @@
         } else {
             modalVoiceBtn.style.display = 'none';
         }
+
+        // --- 🌟 9. DETECTOR ULTRA-RÁPIDO DE CÓDIGOS QR (ENLACE MÁGICO) 🌟 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const abrirId = urlParams.get('abrir'); // Lee el ?abrir=XX de la pegatina QR
+            
+            if (abrirId) {
+                let numId = parseInt(abrirId);
+                // Si escaneas un QR de una caja superior a las que tienes creadas, la app se expande sola
+                if (numId > totalCajas) {
+                    totalCajas = numId;
+                    verificarEstructuraCajas();
+                    guardarDatos();
+                }
+                
+                // Formateamos el ID para asegurar los dos dígitos (ej: "5" -> "05")
+                let idFormateado = numId < 10 ? '0' + numId : numId.toString();
+                
+                // Retardo de un suspiro para asegurar que la app ha cargado la interfaz y desplegar la caja
+                setTimeout(() => {
+                    abrirModal(idFormateado);
+                }, 300);
+            }
+        });
     </script>
 </body>
 </html>
