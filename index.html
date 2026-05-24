@@ -9,36 +9,81 @@
         body { -webkit-tap-highlight-color: transparent; font-family: system-ui, -apple-system, sans-serif; }
         .box-card { transition: all 0.2s; border-radius: 2rem; cursor: pointer; }
         .box-card:active { transform: scale(0.96); }
-        /* Animación de escucha suave para el mini-botón */
         .is-listening { animation: pulse 1.5s infinite; background-color: #fecaca !important; color: #ef4444 !important; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen pb-10">
+<body class="bg-slate-50 min-h-screen pb-24">
 
-    <header class="bg-white p-6 shadow-sm sticky top-0 z-20 flex justify-between items-center">
-        <h1 class="text-xl font-black text-blue-600 tracking-tighter">MY BOXES 📦</h1>
-        <button onclick="if(confirm('¿Borrar TODO y volver a 20 cajas vacías?')){localStorage.clear(); location.reload();}" class="text-[10px] bg-red-50 px-3 py-1 rounded-full text-red-400 font-bold">RESETEAR</button>
+    <header class="bg-white/80 backdrop-blur-md p-6 shadow-sm sticky top-0 z-20 flex justify-center items-center">
+        <h1 class="text-xl font-black text-blue-600 tracking-tighter">DOTSBOX 📦</h1>
     </header>
 
-    <div class="p-4 pb-2">
-        <input type="text" id="searchInput" placeholder="Buscar objeto o caja..." class="w-full p-4 rounded-2xl bg-white border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-400 font-medium transition-all">
+    <div id="view-almacen" class="block">
+        <div class="p-4 pb-2">
+            <input type="text" id="searchInput" placeholder="Buscar objeto o caja..." class="w-full p-4 rounded-2xl bg-white border border-slate-100 shadow-sm outline-none focus:ring-2 focus:ring-blue-400 font-medium transition-all text-slate-700">
+        </div>
+
+        <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4"></main>
     </div>
 
-    <div class="px-4 pb-2 flex gap-3 justify-between items-center text-xs">
-        <button onclick="exportarBackup()" class="flex-1 bg-white text-slate-700 py-3 px-4 rounded-2xl shadow-sm font-bold border border-slate-200/60 active:bg-slate-50 flex items-center justify-center gap-2 transition-all">
-            <span class="text-base">📤</span> Exportar Copia
-        </button>
-        <button onclick="document.getElementById('importInput').click()" class="flex-1 bg-white text-slate-700 py-3 px-4 rounded-2xl shadow-sm font-bold border border-slate-200/60 active:bg-slate-50 flex items-center justify-center gap-2 transition-all">
-            <span class="text-base">📥</span> Importar Copia
-        </button>
-        <input type="file" id="importInput" accept=".json" class="hidden" onchange="importarBackup(event)">
+
+    <div id="view-ajustes" class="hidden p-4">
+        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Copias de Seguridad</h2>
+        
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+            <button onclick="exportarBackup()" class="w-full p-5 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="bg-blue-100 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">📤</div>
+                    <div class="text-left">
+                        <p class="font-bold text-slate-700">Exportar Copia</p>
+                        <p class="text-[11px] text-slate-400">Guarda un archivo .json en tu móvil</p>
+                    </div>
+                </div>
+                <span class="text-slate-300">❯</span>
+            </button>
+
+            <button onclick="document.getElementById('importInput').click()" class="w-full p-5 flex items-center justify-between active:bg-slate-50 transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="bg-emerald-100 text-emerald-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">📥</div>
+                    <div class="text-left">
+                        <p class="font-bold text-slate-700">Importar Copia</p>
+                        <p class="text-[11px] text-slate-400">Restaura tus cajas desde un archivo</p>
+                    </div>
+                </div>
+                <span class="text-slate-300">❯</span>
+            </button>
+            <input type="file" id="importInput" accept=".json" class="hidden" onchange="importarBackup(event)">
+        </div>
+
+        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Zona de Peligro</h2>
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <button onclick="if(confirm('¿Borrar TODO y volver a 20 cajas vacías?')){localStorage.clear(); location.reload();}" class="w-full p-5 flex items-center gap-4 active:bg-red-50 transition-all">
+                <div class="bg-red-100 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">🗑️</div>
+                <div class="text-left">
+                    <p class="font-bold text-red-600">Resetear Aplicación</p>
+                    <p class="text-[11px] text-slate-400">Borra todo el inventario actual</p>
+                </div>
+            </button>
+        </div>
     </div>
 
-    <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4"></main>
 
-    <div id="boxModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-end sm:items-center justify-center transition-opacity">
+    <nav class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200 pb-safe pt-2 px-6 flex justify-around z-30 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] h-20">
+        <button onclick="cambiarPestana('almacen')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
+            <span id="tab-icon-almacen" class="text-2xl grayscale-0 opacity-100 transition-all">📦</span>
+            <span id="tab-text-almacen" class="text-[10px] font-bold text-blue-600 transition-colors">Almacén</span>
+        </button>
+        
+        <button onclick="cambiarPestana('ajustes')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
+            <span id="tab-icon-ajustes" class="text-2xl grayscale opacity-40 transition-all">⚙️</span>
+            <span id="tab-text-ajustes" class="text-[10px] font-bold text-slate-400 transition-colors">Ajustes</span>
+        </button>
+    </nav>
+
+
+    <div id="boxModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center transition-opacity">
         <div class="bg-white w-full sm:w-96 rounded-t-3xl sm:rounded-3xl p-6 h-[85vh] sm:h-auto flex flex-col shadow-2xl relative">
             
             <div class="flex justify-between items-center mb-4">
@@ -62,8 +107,7 @@
                 
                 <button onclick="añadirItemManual()" class="bg-blue-600 text-white w-12 h-12 rounded-xl font-bold text-lg active:bg-blue-800 transition-all">✚</button>
             </div>
-            <div id="modalDebugLog" class="text-[9px] text-slate-400 text-center hidden">Listo</div>
-
+            <div id="modalDebugLog" class="text-[9px] text-slate-400 text-center hidden mt-1">Listo</div>
         </div>
     </div>
 
@@ -88,225 +132,4 @@
 
         function añadirNuevaCaja() {
             totalCajas++;
-            let id = totalCajas < 10 ? '0'+totalCajas : totalCajas.toString();
-            inventario[id] = { titulo: "", items: [] };
-            guardarDatos();
-            render();
-            setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
-        }
-
-        // --- 2. RENDERIZADO ---
-        const boxGrid = document.getElementById('boxGrid');
-        const searchInput = document.getElementById('searchInput');
-
-        function render(filtro = "") {
-            boxGrid.innerHTML = '';
-            for (let i = 1; i <= totalCajas; i++) {
-                const id = i < 10 ? '0' + i : i.toString();
-                const caja = inventario[id];
-                const contenidoTexto = caja.items.join(", ");
-                const tituloMostrar = caja.titulo ? caja.titulo : `CAJA ${id}`;
-                
-                if (filtro && !contenidoTexto.toLowerCase().includes(filtro.toLowerCase()) && 
-                    !tituloMostrar.toLowerCase().includes(filtro.toLowerCase()) && 
-                    !id.includes(filtro)) continue;
-                
-                boxGrid.innerHTML += `
-                    <div onclick="abrirModal('${id}')" class="box-card bg-white p-5 shadow-sm border border-slate-100 flex flex-col items-center text-center">
-                        <span class="text-2xl opacity-40 mb-2">📦</span>
-                        <span class="text-[10px] font-black text-blue-500 uppercase leading-tight">${tituloMostrar}</span>
-                        <p class="mt-2 text-[11px] text-slate-500 font-bold line-clamp-3">
-                            ${caja.items.length > 0 ? contenidoTexto : '<span class="text-slate-200">Vacía</span>'}
-                        </p>
-                        ${caja.items.length > 0 ? `<div class="mt-2 text-[8px] bg-blue-50 text-blue-600 px-2 py-1 rounded-full font-bold">${caja.items.length} ítems</div>` : ''}
-                    </div>
-                `;
-            }
-
-            if (!filtro) {
-                boxGrid.innerHTML += `
-                    <div onclick="añadirNuevaCaja()" class="box-card border-2 border-dashed border-slate-300 bg-slate-50/50 p-5 flex flex-col items-center justify-center text-center opacity-80 active:opacity-100 min-h-[140px]">
-                        <span class="text-3xl text-slate-400 mb-1">➕</span>
-                        <span class="text-[10px] font-black text-slate-500 uppercase">Crear Caja ${totalCajas + 1}</span>
-                    </div>
-                `;
-            }
-        }
-        render();
-        searchInput.addEventListener('input', (e) => render(e.target.value));
-
-        // --- 3. LÓGICA DE VENTANA MODAL ---
-        const modal = document.getElementById('boxModal');
-        let cajaAbiertaActual = null;
-
-        function abrirModal(id) {
-            cajaAbiertaActual = id;
-            document.getElementById('modalTitle').innerText = `📦 CAJA ${id}`;
-            document.getElementById('modalCustomName').value = inventario[id].titulo;
-            renderItemsModal();
-            modal.classList.remove('hidden');
-        }
-
-        function cerrarModal() {
-            // Asegurarnos de parar la escucha si se cierra el modal a mitad
-            if(Speech && recognition) recognition.stop(); 
-            modal.classList.add('hidden');
-            cajaAbiertaActual = null;
-            render(searchInput.value);
-        }
-
-        function guardarNombreCaja(nuevoNombre) {
-            inventario[cajaAbiertaActual].titulo = nuevoNombre;
-            guardarDatos();
-        }
-
-        function renderItemsModal() {
-            const lista = document.getElementById('modalItemsList');
-            lista.innerHTML = '';
-            const items = inventario[cajaAbiertaActual].items;
-
-            if(items.length === 0) {
-                lista.innerHTML = '<p class="text-center text-slate-300 text-sm italic mt-10">La caja está vacía</p>';
-                return;
-            }
-
-            items.forEach((item, index) => {
-                lista.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl mb-2 border border-slate-100">
-                        <span class="text-sm font-medium text-slate-700 capitalize">${item}</span>
-                        <button onclick="borrarItem(${index})" class="text-red-500 bg-red-100 w-8 h-8 rounded-full flex items-center justify-center font-bold active:bg-red-200">X</button>
-                    </div>
-                `;
-            });
-        }
-
-        function borrarItem(index) {
-            inventario[cajaAbiertaActual].items.splice(index, 1);
-            guardarDatos();
-            renderItemsModal();
-        }
-
-        function añadirItemManual() {
-            const input = document.getElementById('modalNewItem');
-            const valor = input.value.trim();
-            if (valor) {
-                // Soportar también añadir múltiples objetos separados por "y" o "," a mano
-                let itemsNuevos = valor.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
-                inventario[cajaAbiertaActual].items.push(...itemsNuevos);
-                guardarDatos();
-                input.value = '';
-                renderItemsModal();
-            }
-        }
-
-        // --- 4. FUNCIONES DEL BÚNKER (EXPORTAR / IMPORTAR) ---
-        function exportarBackup() {
-            const dataBackup = {
-                inventario: inventario,
-                totalCajas: totalCajas,
-                exportadoEn: new Date().toISOString()
-            };
-            const jsonString = JSON.stringify(dataBackup, null, 2);
-            const blob = new Blob([jsonString], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const enlace = document.createElement('a');
-            enlace.href = url;
-            const fecha = new Date().toISOString().split('T')[0];
-            enlace.download = `dotsbox_backup_${fecha}.json`;
-            document.body.appendChild(enlace);
-            enlace.click();
-            document.body.removeChild(enlace);
-            URL.revokeObjectURL(url);
-        }
-
-        function importarBackup(event) {
-            const archivo = event.target.files[0];
-            if (!archivo) return;
-            const lector = new FileReader();
-            lector.onload = function(e) {
-                try {
-                    const datosParseados = JSON.parse(e.target.result);
-                    if (datosParseados.inventario && datosParseados.totalCajas) {
-                        if(confirm('¿Estás seguro? Esto reemplazará todo tu inventario actual.')) {
-                            inventario = datosParseados.inventario;
-                            totalCajas = parseInt(datosParseados.totalCajas);
-                            verificarEstructuraCajas();
-                            guardarDatos();
-                            render();
-                            alert('¡Copia de seguridad restaurada con éxito! 🥳');
-                        }
-                    } else { alert('Error: Formato de archivo inválido.'); }
-                } catch (err) { alert('Error crítico al leer el archivo.'); }
-                event.target.value = '';
-            };
-            lector.readAsText(archivo);
-        }
-
-        // --- 🌟 5. NUEVO SISTEMA DE VOZ INTEGRADO EN CAJAS 🌟 ---
-        const modalVoiceBtn = document.getElementById('modalVoiceBtn');
-        const modalMicIcon = document.getElementById('modalMicIcon');
-        const modalDebugLog = document.getElementById('modalDebugLog');
-        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition;
-
-        if (Speech) {
-            recognition = new Speech();
-            recognition.lang = 'es-ES';
-            recognition.continuous = false; // Parar tras una frase
-
-            // Clic en el micrófono de la caja abierta
-            modalVoiceBtn.addEventListener('click', () => {
-                if (cajaAbiertaActual) {
-                    try {
-                        recognition.start();
-                        // Feedback visual suave de escucha
-                        modalVoiceBtn.classList.add('is-listening');
-                        modalMicIcon.innerText = "🛑"; // Cambiar a stop
-                        modalDebugLog.innerText = "Escuchando objeto(s)...";
-                        modalDebugLog.classList.remove('hidden');
-                    } catch (e) { recognition.stop(); }
-                }
-            });
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript.trim().toLowerCase();
-                
-                if (cajaAbiertaActual && transcript.length > 1) {
-                    modalDebugLog.innerText = "Entendido: " + transcript;
-                    
-                    // Procesar la frase directly como objeto(s)
-                    // Soportamos múltiples objetos separados por "y", ",", "e"
-                    let itemsNuevos = transcript.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
-                    
-                    // Guardar directamente en la caja abierta
-                    inventario[cajaAbiertaActual].items.push(...itemsNuevos);
-                    guardarDatos();
-                    renderItemsModal(); // Refrescar la lista de la caja
-                    
-                    // Pequeño feedback visual de guardado correcto
-                    modalDebugLog.innerText = `¡Guardado: ${itemsNuevos.join(", ")}!`;
-                    setTimeout(() => modalDebugLog.classList.add('hidden'), 2000);
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error(event.error);
-                modalDebugLog.innerText = "Error: " + event.error;
-                stopListeningVisuals();
-            };
-
-            recognition.onend = () => {
-                stopListeningVisuals();
-            };
-
-            function stopListeningVisuals() {
-                modalVoiceBtn.classList.remove('is-listening');
-                modalMicIcon.innerText = "🎤";
-            }
-        } else {
-            // Si el iPhone no soporta voz en esta vista, ocultamos el micro
-            modalVoiceBtn.style.display = 'none';
-        }
-    </script>
-</body>
-</html>
+            let id =
