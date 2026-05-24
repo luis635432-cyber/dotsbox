@@ -30,15 +30,26 @@
 
 
     <div id="view-ajustes" class="hidden p-4">
-        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Copias de Seguridad</h2>
+        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Copias e Informes</h2>
         
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
             <button onclick="exportarBackup()" class="w-full p-5 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 transition-all">
                 <div class="flex items-center gap-4">
                     <div class="bg-blue-100 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">📤</div>
                     <div class="text-left">
-                        <p class="font-bold text-slate-700">Exportar Copia</p>
-                        <p class="text-[11px] text-slate-400">Guarda un archivo .json en tu móvil</p>
+                        <p class="font-bold text-slate-700">Exportar Copia (.json)</p>
+                        <p class="text-[11px] text-slate-400">El seguro de vida de la app para restaurar datos</p>
+                    </div>
+                </div>
+                <span class="text-slate-300">❯</span>
+            </button>
+
+            <button onclick="exportarExcel()" class="w-full p-5 flex items-center justify-between border-b border-slate-50 active:bg-slate-50 transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="bg-green-100 text-green-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">📊</div>
+                    <div class="text-left">
+                        <p class="font-bold text-slate-700">Exportar a Excel (.csv)</p>
+                        <p class="text-[11px] text-slate-400">Lista limpia para leer, imprimir o editar en PC</p>
                     </div>
                 </div>
                 <span class="text-slate-300">❯</span>
@@ -46,10 +57,10 @@
 
             <button onclick="document.getElementById('importInput').click()" class="w-full p-5 flex items-center justify-between active:bg-slate-50 transition-all">
                 <div class="flex items-center gap-4">
-                    <div class="bg-emerald-100 text-emerald-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">📥</div>
+                    <div class="bg-indigo-100 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">📥</div>
                     <div class="text-left">
                         <p class="font-bold text-slate-700">Importar Copia</p>
-                        <p class="text-[11px] text-slate-400">Restaura tus cajas desde un archivo</p>
+                        <p class="text-[11px] text-slate-400">Restaura tus cajas desde tu archivo .json</p>
                     </div>
                 </div>
                 <span class="text-slate-300">❯</span>
@@ -63,7 +74,7 @@
                 <div class="bg-red-100 text-red-600 w-10 h-10 rounded-full flex items-center justify-center text-lg">🗑️</div>
                 <div class="text-left">
                     <p class="font-bold text-red-600">Resetear Aplicación</p>
-                    <p class="text-[11px] text-slate-400">Borra todo el inventario actual</p>
+                    <p class="text-[11px] text-slate-400">Borra todo el inventario actual de la memoria</p>
                 </div>
             </button>
         </div>
@@ -112,7 +123,7 @@
     </div>
 
     <script>
-        // --- 1. GESTIÓN DE CONFIGURACIÓN Y CAJAS ---
+        // --- GESTIÓN DE CONFIGURACIÓN Y CAJAS ---
         let totalCajas = parseInt(localStorage.getItem('miInventario_totalCajas')) || 20;
         let inventario = JSON.parse(localStorage.getItem('miInventario_v5')) || {};
 
@@ -139,7 +150,7 @@
             setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
         }
 
-        // --- 2. SISTEMA DE NAVEGACIÓN (TABS) ---
+        // --- SISTEMA DE NAVEGACIÓN (TABS) ---
         function cambiarPestana(pestana) {
             const vistaAlmacen = document.getElementById('view-almacen');
             const vistaAjustes = document.getElementById('view-ajustes');
@@ -151,25 +162,22 @@
             if (pestana === 'almacen') {
                 vistaAlmacen.classList.remove('hidden');
                 vistaAjustes.classList.add('hidden');
-                
                 textAlmacen.className = "text-[10px] font-bold text-blue-600 transition-colors";
                 iconAlmacen.className = "text-2xl grayscale-0 opacity-100 transition-all";
-                
                 textAjustes.className = "text-[10px] font-bold text-slate-400 transition-colors";
                 iconAjustes.className = "text-2xl grayscale opacity-40 transition-all";
             } else {
                 vistaAlmacen.classList.add('hidden');
+                vistaAjustes.className = "hidden"; // Fix syntax/class
                 vistaAjustes.classList.remove('hidden');
-                
                 textAjustes.className = "text-[10px] font-bold text-blue-600 transition-colors";
                 iconAjustes.className = "text-2xl grayscale-0 opacity-100 transition-all";
-                
                 textAlmacen.className = "text-[10px] font-bold text-slate-400 transition-colors";
                 iconAlmacen.className = "text-2xl grayscale opacity-40 transition-all";
             }
         }
 
-        // --- 3. RENDERIZADO DE CAJAS ---
+        // --- RENDERIZADO DE CAJAS ---
         const boxGrid = document.getElementById('boxGrid');
         const searchInput = document.getElementById('searchInput');
 
@@ -209,7 +217,7 @@
         render();
         searchInput.addEventListener('input', (e) => render(e.target.value));
 
-        // --- 4. LÓGICA DE VENTANA MODAL ---
+        // --- LÓGICA DE VENTANA MODAL ---
         const modal = document.getElementById('boxModal');
         let cajaAbiertaActual = null;
 
@@ -259,6 +267,7 @@
             renderItemsModal();
         }
 
+        // Entrada manual por botón ✚
         function añadirItemManual() {
             const input = document.getElementById('modalNewItem');
             const valor = input.value.trim();
@@ -271,7 +280,7 @@
             }
         }
 
-        // --- 5. FUNCIONES DEL BÚNKER (EXPORTAR / IMPORTAR) ---
+        // --- FUNCIONES DEL BÚNKER (EXPORTAR / IMPORTAR BACKUPS JSON) ---
         function exportarBackup() {
             const dataBackup = {
                 inventario: inventario,
@@ -314,7 +323,43 @@
             lector.readAsText(archivo);
         }
 
-        // --- 6. SISTEMA DE VOZ INTEGRADO EN CAJAS ---
+        // --- 🌟 NUEVA FUNCIÓN: EXPORTAR A EXCEL (CSV EN ESPAÑOL) 🌟 ---
+        function exportarExcel() {
+            // \uFEFF añade el BOM UTF-8 para que Excel en Windows lea bien acentos y eñes
+            let csvContent = "\uFEFF";
+            
+            // Cabecera de columnas separadas por punto y coma (Estándar Excel Europeo)
+            csvContent += "Caja;Identificador;Nombre Personalizado;Objetos Guardados;Cantidad\n";
+            
+            for (let i = 1; i <= totalCajas; i++) {
+                const id = i < 10 ? '0' + i : i.toString();
+                const caja = inventario[id];
+                
+                // Limpiamos los textos de puntos y comas para no romper las columnas de Excel
+                const nombreCaja = caja.titulo ? caja.titulo.replace(/;/g, ",") : `Caja ${id}`;
+                const listaObjetos = caja.items.length > 0 ? caja.items.join(", ").replace(/;/g, "-") : "Vacía";
+                const cantidad = caja.items.length;
+                
+                // Añadimos la fila entrecomillando los textos largos por seguridad
+                csvContent += `${i};"${id}";"${nombreCaja}";"${listaObjetos}";${cantidad} items\n`;
+            }
+            
+            // Creamos el archivo y forzamos la descarga nativa en iOS/PC
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const enlace = document.createElement('a');
+            enlace.href = url;
+            
+            const fecha = new Date().toISOString().split('T')[0];
+            enlace.download = `dotsbox_excel_${fecha}.csv`;
+            
+            document.body.appendChild(enlace);
+            enlace.click();
+            document.body.removeChild(enlace);
+            URL.revokeObjectURL(url);
+        }
+
+        // --- SISTEMA DE VOZ INTEGRADO EN CAJAS ---
         const modalVoiceBtn = document.getElementById('modalVoiceBtn');
         const modalMicIcon = document.getElementById('modalMicIcon');
         const modalDebugLog = document.getElementById('modalDebugLog');
@@ -357,9 +402,7 @@
                 stopListeningVisuals();
             };
 
-            recognition.onend = () => {
-                stopListeningVisuals();
-            };
+            recognition.onend = () => { stopListeningVisuals(); };
 
             function stopListeningVisuals() {
                 modalVoiceBtn.classList.remove('is-listening');
