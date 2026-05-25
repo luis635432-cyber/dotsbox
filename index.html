@@ -24,7 +24,10 @@
 
     <div id="view-almacen" class="block">
         <div class="p-4 pb-2">
-            <input type="text" id="searchInput" placeholder="Buscar objeto o caja..." class="w-full p-4 rounded-2xl bg-[#1c1c1e] border border-gray-800 shadow-inner outline-none focus:ring-2 focus:ring-blue-500 font-medium transition-all text-white placeholder-gray-500">
+            <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">🔍</span>
+                <input type="text" id="searchInput" placeholder="Buscar objeto o caja..." class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-[#1c1c1e] border border-gray-800 shadow-inner outline-none focus:ring-2 focus:ring-blue-500 font-medium transition-all text-white placeholder-gray-500">
+            </div>
         </div>
 
         <div id="filterIndicator" class="px-4 pb-2 hidden">
@@ -34,7 +37,7 @@
             </div>
         </div>
 
-        <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4"></main>
+        <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4 items-stretch"></main>
     </div>
 
 
@@ -114,12 +117,12 @@
         </button>
 
         <button onclick="cambiarPestana('zonas')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
-            <span id="tab-icon-zonas" class="text-2xl grayscale opacity-40 transition-all">🗺️</span>
+            <span id="tab-icon-zonas" class="text-2xl grayscale opacity-60 transition-all">🗺️</span>
             <span id="tab-text-zonas" class="text-[10px] font-bold text-gray-500 transition-colors">Zonas</span>
         </button>
         
         <button onclick="cambiarPestana('ajustes')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
-            <span id="tab-icon-ajustes" class="text-2xl grayscale opacity-40 transition-all">⚙️</span>
+            <span id="tab-icon-ajustes" class="text-2xl grayscale opacity-60 transition-all">⚙️</span>
             <span id="tab-text-ajustes" class="text-[10px] font-bold text-gray-500 transition-colors">Ajustes</span>
         </button>
     </nav>
@@ -197,7 +200,7 @@
 
             ["almacen", "zonas", "ajustes"].forEach(t => {
                 document.getElementById(`tab-text-${t}`).className = "text-[10px] font-bold text-gray-500 transition-colors";
-                document.getElementById(`tab-icon-${t}`).className = "text-2xl grayscale opacity-40 transition-all";
+                document.getElementById(`tab-icon-${t}`).className = "text-2xl grayscale opacity-60 transition-all";
                 document.getElementById(`tab-icon-${t}`).style.filter = "none";
             });
 
@@ -291,23 +294,25 @@
                     !id.includes(filtro) && !caja.zona.toLowerCase().includes(filtro.toLowerCase())) continue;
                 
                 boxGrid.innerHTML += `
-                    <div onclick="abrirModal('${id}')" class="box-card bg-[#1c1c1e] p-5 border border-gray-800 flex flex-col items-center text-center relative overflow-hidden">
-                        <span class="text-2xl mb-1 drop-shadow-md">📦</span>
-                        <span class="text-[11px] font-black text-blue-400 uppercase leading-tight mt-1">${tituloMostrar}</span>
-                        
-                        ${caja.zona ? `<span class="mt-2 text-[12px] bg-gray-800 text-white px-3 py-1 rounded-lg font-bold truncate max-w-full shadow-inner border border-gray-700">📍 ${caja.zona}</span>` : ''}
-                        
-                        <p class="mt-3 text-[12px] text-gray-400 font-semibold line-clamp-2">
-                            ${caja.items.length > 0 ? contenidoTexto : '<span class="text-gray-600 italic font-normal">Vacía</span>'}
-                        </p>
-                        ${caja.items.length > 0 ? `<div class="mt-3 text-[10px] bg-blue-900/30 border border-blue-800/50 text-blue-300 px-3 py-1 rounded-full font-bold">${caja.items.length} ítems</div>` : ''}
+                    <div onclick="abrirModal('${id}')" class="box-card h-full bg-[#1c1c1e] p-5 border border-gray-800 flex flex-col items-center text-center relative overflow-hidden justify-between">
+                        <div class="flex flex-col items-center w-full">
+                            <span class="text-2xl mb-1 drop-shadow-md">📦</span>
+                            <span class="text-[11px] font-black text-blue-400 uppercase leading-tight mt-1">${tituloMostrar}</span>
+                            
+                            ${caja.zona ? `<span class="mt-2 text-[11px] leading-tight text-center bg-gray-800 text-white px-3 py-1.5 rounded-lg font-bold whitespace-normal w-11/12 shadow-inner border border-gray-700">📍 ${caja.zona}</span>` : ''}
+                            
+                            <p class="mt-3 text-[12px] text-gray-300 font-medium line-clamp-2">
+                                ${caja.items.length > 0 ? contenidoTexto : '<span class="text-gray-500 italic font-normal">Vacía</span>'}
+                            </p>
+                        </div>
+                        ${caja.items.length > 0 ? `<div class="mt-3 text-[10px] bg-blue-900/30 border border-blue-800/50 text-blue-300 px-3 py-1 rounded-full font-bold shrink-0">${caja.items.length} ítems</div>` : ''}
                     </div>
                 `;
             }
 
             if (!filtro && !filtroZonaActual) {
                 boxGrid.innerHTML += `
-                    <div onclick="addNuevaCaja()" class="box-card border-2 border-dashed border-gray-700 bg-[#1c1c1e]/50 p-5 flex flex-col items-center justify-center text-center opacity-80 active:opacity-100 min-h-[160px]">
+                    <div onclick="addNuevaCaja()" class="box-card h-full border-2 border-dashed border-gray-700 bg-[#1c1c1e]/50 p-5 flex flex-col items-center justify-center text-center opacity-80 active:opacity-100 min-h-[160px]">
                         <span class="text-3xl text-gray-600 mb-1 drop-shadow-md">➕</span>
                         <span class="text-[11px] font-black text-gray-500 uppercase mt-2">Crear Caja ${totalCajas + 1}</span>
                     </div>
