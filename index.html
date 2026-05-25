@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dotsbox Pro</title>
+    <title>LociBox Pro</title>
+    <meta name="apple-mobile-web-app-title" content="LociBox">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22/><g transform=%22translate(25,25) scale(2)%22 fill=%22none%22 stroke=%22%233b82f6%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z%22/><polyline points=%223.27 6.96 12 12.01 20.73 6.96%22/><line x1=%2212%22 y1=%2222.08%22 x2=%2212%22 y2=%2212%22/><circle cx=%2212%22 cy=%225%22 r=%221.5%22 fill=%22%233b82f6%22 stroke=%22none%22/></g></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: system-ui, -apple-system, sans-serif; background-color: #000000; }
@@ -12,14 +14,21 @@
         .is-listening { animation: pulse 1.5s infinite; background-color: #7f1d1d !important; color: #fca5a5 !important; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        /* Efecto cristal oscuro para iOS */
         .glass-dark { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
     </style>
 </head>
 <body class="text-gray-200 min-h-screen pb-28">
 
-    <header class="glass-dark p-6 border-b border-gray-800/60 sticky top-0 z-20 flex justify-center items-center">
-        <h1 class="text-xl font-black text-blue-500 tracking-tighter drop-shadow-md">DOTSBOX 📦</h1>
+    <header class="glass-dark p-5 border-b border-gray-800/60 sticky top-0 z-20 flex justify-center items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            <circle cx="12" cy="5" r="1.5" fill="#3b82f6" stroke="none"></circle>
+        </svg>
+        <h1 class="text-2xl font-black text-white tracking-tighter">
+            Loci<span class="text-blue-500">Box</span>
+        </h1>
     </header>
 
     <div id="view-almacen" class="block">
@@ -40,24 +49,19 @@
         <main id="boxGrid" class="p-4 grid grid-cols-2 gap-4 items-stretch"></main>
     </div>
 
-
     <div id="view-zonas" class="hidden p-4">
         <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 ml-2">¿Dónde vas a buscar?</h2>
-        <div id="zonasGrid" class="flex flex-col gap-3">
-            </div>
+        <div id="zonasGrid" class="flex flex-col gap-3"></div>
     </div>
 
-
     <div id="view-ajustes" class="hidden p-4">
-        
         <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Tus Zonas / Habitaciones</h2>
         <div class="bg-[#1c1c1e] rounded-3xl p-4 border border-gray-800 mb-6">
             <div class="flex gap-2 mb-4">
                 <input type="text" id="newZoneInput" placeholder="Ej: Garaje, Coche..." class="flex-grow p-3 rounded-xl bg-black border border-gray-700 outline-none focus:border-blue-500 text-sm font-medium text-white placeholder-gray-600">
                 <button onclick="crearNuevaZona()" class="bg-blue-600 text-white px-5 rounded-xl font-bold active:bg-blue-800">✚</button>
             </div>
-            <div id="listaZonasAjustes" class="flex flex-col gap-2">
-                </div>
+            <div id="listaZonasAjustes" class="flex flex-col gap-2"></div>
         </div>
 
         <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Copias e Informes</h2>
@@ -109,7 +113,6 @@
         </div>
     </div>
 
-
     <nav class="glass-dark fixed bottom-0 left-0 w-full border-t border-gray-800 pb-safe pt-2 px-2 flex justify-around z-30 h-20">
         <button onclick="cambiarPestana('almacen')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
             <span id="tab-icon-almacen" class="text-2xl grayscale-0 opacity-100 transition-all drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]">📦</span>
@@ -127,10 +130,8 @@
         </button>
     </nav>
 
-
     <div id="boxModal" class="hidden fixed inset-0 glass-dark z-50 flex items-end sm:items-center justify-center transition-opacity">
         <div class="bg-[#1c1c1e] w-full sm:w-96 rounded-t-[2rem] sm:rounded-3xl p-6 h-[85vh] sm:h-auto flex flex-col shadow-2xl relative border border-gray-800">
-            
             <div class="flex justify-between items-center mb-4">
                 <h2 id="modalTitle" class="text-2xl font-black text-blue-500 uppercase tracking-tighter">📦 CAJA --</h2>
                 <button onclick="cerrarModal()" class="bg-gray-800 text-gray-400 w-10 h-10 rounded-full font-bold text-lg active:bg-gray-700">X</button>
@@ -151,11 +152,9 @@
 
             <div class="flex gap-2 items-center mb-1">
                 <input type="text" id="modalNewItem" placeholder="Añadir objeto..." class="flex-grow p-3.5 rounded-xl bg-black border border-gray-700 outline-none focus:border-blue-500 text-sm font-medium text-white placeholder-gray-500">
-                
                 <button id="modalVoiceBtn" class="bg-gray-800 text-gray-400 w-12 h-12 rounded-xl flex items-center justify-center active:bg-gray-700 transition-all">
                     <span id="modalMicIcon" class="text-xl">🎤</span>
                 </button>
-                
                 <button onclick="añadirItemManual()" class="bg-blue-600 text-white w-12 h-12 rounded-xl font-bold text-lg active:bg-blue-800 transition-all">✚</button>
             </div>
             <div id="modalDebugLog" class="text-[10px] text-blue-400 font-bold text-center hidden mt-1">Listo</div>
@@ -354,6 +353,7 @@
         function guardarZonaCaja(z) { inventario[cajaAbiertaActual].zona = z; guardarDatos(); }
 
         function renderItemsModal() {
+            const fontColor = 'text-gray-200';
             const lista = document.getElementById('modalItemsList');
             lista.innerHTML = '';
             const items = inventario[cajaAbiertaActual].items;
@@ -366,7 +366,7 @@
             items.forEach((item, index) => {
                 lista.innerHTML += `
                     <div class="flex justify-between items-center bg-black p-3 rounded-xl mb-2 border border-gray-800">
-                        <span class="text-sm font-medium text-gray-200 capitalize">${item}</span>
+                        <span class="text-sm font-medium ${fontColor} capitalize">${item}</span>
                         <button onclick="borrarItem(${index})" class="text-red-400 bg-red-900/30 w-8 h-8 rounded-full flex items-center justify-center font-bold active:bg-red-900/50">X</button>
                     </div>
                 `;
@@ -391,7 +391,7 @@
             const d = { inventario: inventario, totalCajas: totalCajas, zonas: listaZonas, exportadoEn: new Date().toISOString() };
             const b = new Blob([JSON.stringify(d, null, 2)], { type: "application/json" });
             const u = URL.createObjectURL(b);
-            const a = document.createElement('a'); a.href = u; a.download = `dotsbox_backup_${new Date().toISOString().split('T')[0]}.json`;
+            const a = document.createElement('a'); a.href = u; a.download = `lociBox_backup_${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
         }
 
@@ -421,7 +421,7 @@
                 csv += `${i};"${id}";"${c.titulo?c.titulo.replace(/;/g, ","):`Caja ${id}`}";"${c.zona?c.zona.replace(/;/g, ","):"Sin asignar"}";"${c.items.length>0?c.items.join(", ").replace(/;/g, "-"):"Vacía"}";${c.items.length}\n`;
             }
             const b = new Blob([csv], { type: "text/csv;charset=utf-8;" }); const u = URL.createObjectURL(b);
-            const a = document.createElement('a'); a.href = u; a.download = `dotsbox_${new Date().toISOString().split('T')[0]}.csv`;
+            const a = document.createElement('a'); a.href = u; a.download = `lociBox_${new Date().toISOString().split('T')[0]}.csv`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
         }
 
