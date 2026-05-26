@@ -18,10 +18,10 @@
     </style>
 </head>
 <body class="text-gray-200 min-h-screen pb-28">
-<header class="glass-dark p-4 border-b border-gray-800/60 sticky top-0 z-20 flex justify-center items-center">
-        <img src="logo.png" alt="LociBox Logo" class="h-20 w-auto object-contain">
+
+    <header class="glass-dark p-4 border-b border-gray-800/60 sticky top-0 z-20 flex justify-center items-center">
+        <img src="logo.png" alt="LociBox Logo" class="h-16 w-auto object-contain">
     </header>
-    
 
     <div id="view-almacen" class="block">
         <div class="p-4 pb-2">
@@ -47,6 +47,13 @@
     </div>
 
     <div id="view-ajustes" class="hidden p-4">
+        
+        <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Estado del Servidor</h2>
+        <div class="bg-[#1c1c1e] rounded-3xl p-4 border border-gray-800 mb-6 flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse"></div>
+            <span class="text-sm font-bold text-gray-200">Nube de Google Conectada</span>
+        </div>
+
         <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Tus Zonas / Habitaciones</h2>
         <div class="bg-[#1c1c1e] rounded-3xl p-4 border border-gray-800 mb-6">
             <div class="flex gap-2 mb-4">
@@ -56,51 +63,17 @@
             <div id="listaZonasAjustes" class="flex flex-col gap-2"></div>
         </div>
 
-        <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Copias e Informes</h2>
+        <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Copias e Informes (Opcional)</h2>
         <div class="bg-[#1c1c1e] rounded-3xl border border-gray-800 overflow-hidden mb-6">
-            <button onclick="exportarBackup()" class="w-full p-5 flex items-center justify-between border-b border-gray-800 active:bg-black transition-all">
-                <div class="flex items-center gap-4">
-                    <div class="bg-blue-900/40 text-blue-400 w-10 h-10 rounded-full flex items-center justify-center text-lg">📤</div>
-                    <div class="text-left">
-                        <p class="font-bold text-gray-200">Exportar Copia (.json)</p>
-                        <p class="text-[11px] text-gray-500">Copia completa de la app</p>
-                    </div>
-                </div>
-                <span class="text-gray-600">❯</span>
-            </button>
-
-            <button onclick="exportarExcel()" class="w-full p-5 flex items-center justify-between border-b border-gray-800 active:bg-black transition-all">
+            <button onclick="exportarExcel()" class="w-full p-5 flex items-center justify-between active:bg-black transition-all">
                 <div class="flex items-center gap-4">
                     <div class="bg-green-900/40 text-green-400 w-10 h-10 rounded-full flex items-center justify-center text-lg">📊</div>
                     <div class="text-left">
                         <p class="font-bold text-gray-200">Exportar a Excel (.csv)</p>
-                        <p class="text-[11px] text-gray-500">Lista para PC con ubicaciones</p>
+                        <p class="text-[11px] text-gray-500">Lista para imprimir o ver en PC</p>
                     </div>
                 </div>
                 <span class="text-gray-600">❯</span>
-            </button>
-
-            <button onclick="document.getElementById('importInput').click()" class="w-full p-5 flex items-center justify-between active:bg-black transition-all">
-                <div class="flex items-center gap-4">
-                    <div class="bg-indigo-900/40 text-indigo-400 w-10 h-10 rounded-full flex items-center justify-center text-lg">📥</div>
-                    <div class="text-left">
-                        <p class="font-bold text-gray-200">Importar Copia</p>
-                        <p class="text-[11px] text-gray-500">Restaura datos desde .json</p>
-                    </div>
-                </div>
-                <span class="text-gray-600">❯</span>
-            </button>
-            <input type="file" id="importInput" accept=".json" class="hidden" onchange="importarBackup(event)">
-        </div>
-
-        <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Zona de Peligro</h2>
-        <div class="bg-[#1c1c1e] rounded-3xl border border-red-900/30 overflow-hidden">
-            <button onclick="if(confirm('¿Borrar TODO?')){localStorage.clear(); location.reload();}" class="w-full p-5 flex items-center gap-4 active:bg-red-950 transition-all">
-                <div class="bg-red-900/40 text-red-500 w-10 h-10 rounded-full flex items-center justify-center text-lg">🗑️</div>
-                <div class="text-left">
-                    <p class="font-bold text-red-500">Resetear Aplicación</p>
-                    <p class="text-[11px] text-gray-500">Borra todo el inventario de la memoria</p>
-                </div>
             </button>
         </div>
     </div>
@@ -153,7 +126,24 @@
         </div>
     </div>
 
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
     <script>
+        // 1. INICIALIZAR FIREBASE (Con tus llaves)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXofbNFQRt6YDPQWv7hIS7OgLRk1SscYg",
+            authDomain: "locibox.firebaseapp.com",
+            projectId: "locibox",
+            storageBucket: "locibox.firebasestorage.app",
+            messagingSenderId: "567800822474",
+            appId: "1:567800822474:web:b2e27d6a1bbb6d8f9f9233"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // 2. VARIABLES GLOBALES (Carga rápida local mientras Firebase responde)
         let totalCajas = parseInt(localStorage.getItem('miInventario_totalCajas')) || 20;
         let inventario = JSON.parse(localStorage.getItem('miInventario_v5')) || {};
         let listaZonas = JSON.parse(localStorage.getItem('miInventario_zonas')) || ["Despacho", "Trastero", "Dormitorio", "Armario"];
@@ -166,21 +156,51 @@
                 if(!inventario[id].zona) inventario[id].zona = ""; 
             }
         }
-        verificarEstructuraCajas();
-        guardarDatos();
 
+        // 3. LA MAGIA: SINCRONIZACIÓN EN TIEMPO REAL CON LA NUBE
+        db.collection("datos").doc("miInventario").onSnapshot((doc) => {
+            if (doc.exists) {
+                // Si hay datos en la nube, los descargamos al instante
+                const data = doc.data();
+                inventario = data.inventario || {};
+                totalCajas = data.totalCajas || 20;
+                listaZonas = data.listaZonas || ["Despacho", "Trastero", "Dormitorio", "Armario"];
+                
+                verificarEstructuraCajas();
+                render(searchInput.value);
+                if (cajaAbiertaActual) renderItemsModal();
+                if (!document.getElementById('view-zonas').classList.contains('hidden')) renderZonasTab();
+                if (!document.getElementById('view-ajustes').classList.contains('hidden')) renderZonasAjustes();
+            } else {
+                // Si la base de datos está vacía (como ahora mismo), subimos tu inventario local
+                guardarDatos();
+            }
+        });
+
+        // 4. FUNCIÓN GUARDAR (Guarda en local por si acaso, y en la Nube)
         function guardarDatos() {
+            // Copia de seguridad local
             localStorage.setItem('miInventario_v5', JSON.stringify(inventario));
             localStorage.setItem('miInventario_totalCajas', totalCajas);
             localStorage.setItem('miInventario_zonas', JSON.stringify(listaZonas));
+            
+            // Subida a la nube
+            db.collection("datos").doc("miInventario").set({
+                inventario: inventario,
+                totalCajas: totalCajas,
+                listaZonas: listaZonas
+            }).catch((error) => {
+                console.error("Error al guardar en la nube: ", error);
+            });
         }
+
+        // --- RESTO DE LA LÓGICA DE LA APP (Buscador, Modal, QRs, Voz...) ---
 
         function añadirNuevaCaja() {
             totalCajas++;
             let id = totalCajas < 10 ? '0'+totalCajas : totalCajas.toString();
             inventario[id] = { titulo: "", items: [], zona: "" };
             guardarDatos();
-            render();
             setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
         }
 
@@ -275,14 +295,14 @@
             boxGrid.innerHTML = '';
             for (let i = 1; i <= totalCajas; i++) {
                 const id = i < 10 ? '0' + i : i.toString();
-                const caja = inventario[id];
+                const caja = inventario[id] || { titulo: "", items: [], zona: "" };
                 const contenidoTexto = caja.items.join(", ");
                 const tituloMostrar = caja.titulo ? caja.titulo : `CAJA ${id}`;
                 
                 if (filtroZonaActual && caja.zona !== filtroZonaActual) continue;
                 if (filtro && !contenidoTexto.toLowerCase().includes(filtro.toLowerCase()) && 
                     !tituloMostrar.toLowerCase().includes(filtro.toLowerCase()) && 
-                    !id.includes(filtro) && !caja.zona.toLowerCase().includes(filtro.toLowerCase())) continue;
+                    !id.includes(filtro) && !(caja.zona || "").toLowerCase().includes(filtro.toLowerCase())) continue;
                 
                 boxGrid.innerHTML += `
                     <div onclick="abrirModal('${id}')" class="box-card h-full bg-[#1c1c1e] p-5 border border-gray-800 flex flex-col items-center text-center relative overflow-hidden justify-between">
@@ -312,6 +332,8 @@
         }
         function addNuevaCaja() { añadirNuevaCaja(); }
         
+        // Primera renderización con datos locales mientras carga nube
+        verificarEstructuraCajas();
         render();
         searchInput.addEventListener('input', (e) => render(e.target.value));
 
@@ -321,7 +343,7 @@
         function abrirModal(id) {
             cajaAbiertaActual = id;
             document.getElementById('modalTitle').innerText = `📦 CAJA ${id}`;
-            document.getElementById('modalCustomName').value = inventario[id].titulo;
+            document.getElementById('modalCustomName').value = inventario[id].titulo || "";
             
             const select = document.getElementById('modalZonaSelect');
             select.innerHTML = '<option value="">⚠️ Sin asignar</option>';
@@ -338,7 +360,6 @@
             if(Speech && recognition) recognition.stop(); 
             modal.classList.add('hidden');
             cajaAbiertaActual = null;
-            render(searchInput.value);
         }
 
         function guardarNombreCaja(n) { inventario[cajaAbiertaActual].titulo = n; guardarDatos(); }
@@ -365,7 +386,7 @@
             });
         }
 
-        function borrarItem(index) { inventario[cajaAbiertaActual].items.splice(index, 1); guardarDatos(); renderItemsModal(); }
+        function borrarItem(index) { inventario[cajaAbiertaActual].items.splice(index, 1); guardarDatos(); }
 
         function añadirItemManual() {
             const input = document.getElementById('modalNewItem');
@@ -375,35 +396,7 @@
                 inventario[cajaAbiertaActual].items.push(...items);
                 guardarDatos();
                 input.value = '';
-                renderItemsModal();
             }
-        }
-
-        function exportarBackup() {
-            const d = { inventario: inventario, totalCajas: totalCajas, zonas: listaZonas, exportadoEn: new Date().toISOString() };
-            const b = new Blob([JSON.stringify(d, null, 2)], { type: "application/json" });
-            const u = URL.createObjectURL(b);
-            const a = document.createElement('a'); a.href = u; a.download = `lociBox_backup_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
-        }
-
-        function importarBackup(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const r = new FileReader();
-            r.onload = function(ev) {
-                try {
-                    const d = JSON.parse(ev.target.result);
-                    if (d.inventario && d.totalCajas && confirm('¿Reemplazar inventario actual?')) {
-                        inventario = d.inventario; totalCajas = parseInt(d.totalCajas);
-                        if(d.zonas) listaZonas = d.zonas;
-                        verificarEstructuraCajas(); guardarDatos(); render();
-                        alert('¡Restaurado con éxito!');
-                    }
-                } catch (err) { alert('Error al leer archivo.'); }
-                e.target.value = '';
-            };
-            r.readAsText(file);
         }
 
         function exportarExcel() {
@@ -440,7 +433,7 @@
                 if (cajaAbiertaActual && transcript.length > 1) {
                     let itemsNuevos = transcript.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
                     inventario[cajaAbiertaActual].items.push(...itemsNuevos);
-                    guardarDatos(); renderItemsModal();
+                    guardarDatos();
                     modalDebugLog.innerText = `¡Guardado: ${itemsNuevos.join(", ")}!`;
                     setTimeout(() => modalDebugLog.classList.add('hidden'), 2000);
                 }
@@ -456,9 +449,9 @@
             const abrirId = urlParams.get('abrir');
             if (abrirId) {
                 let numId = parseInt(abrirId);
-                if (numId > totalCajas) { totalCajas = numId; verificarEstructuraCajas(); guardarDatos(); }
+                if (numId > totalCajas) { totalCajas = numId; guardarDatos(); }
                 let idFormateado = numId < 10 ? '0' + numId : numId.toString();
-                setTimeout(() => abrirModal(idFormateado), 300);
+                setTimeout(() => abrirModal(idFormateado), 500); // Retardo ligero para asegurar carga Firebase
             }
         });
     </script>
