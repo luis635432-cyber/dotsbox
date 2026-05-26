@@ -15,44 +15,45 @@
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .glass-dark { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+        /* Modo Fantasma para cajas vacías */
         .ghost-mode { opacity: 0.4; filter: grayscale(50%); border-color: #1f2937 !important; }
     </style>
 </head>
 <body class="text-gray-200 min-h-screen pb-28">
 
     <header class="glass-dark p-4 border-b border-gray-800/60 sticky top-0 z-20 flex justify-center items-center">
-        <img src="logo.png" alt="LociBox Logo" class="h-[22px] w-auto object-contain">
+        <img src="logo.png" alt="LociBox Logo" class="h-16 w-auto object-contain">
     </header>
 
     <div id="view-almacen" class="block relative min-h-screen">
         <div class="p-4 pb-2">
             <div class="relative">
                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">🔍</span>
-                <input type="text" id="searchInput" placeholder="Buscar..." class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-[#1c1c1e] border border-gray-800 shadow-inner outline-none focus:ring-2 focus:ring-blue-600 font-medium transition-all text-white placeholder-gray-500">
+                <input type="text" id="searchInput" placeholder="Buscar objeto o caja..." class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-[#1c1c1e] border border-gray-800 shadow-inner outline-none focus:ring-2 focus:ring-blue-500 font-medium transition-all text-white placeholder-gray-500">
             </div>
         </div>
 
         <div class="px-4 pb-2 flex justify-between items-center gap-2">
-            <button onclick="addNuevaCaja()" class="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm active:bg-blue-700 transition-colors shadow-[0_0_10px_rgba(37,99,235,0.3)] shrink-0">
-                <span>➕</span> <span>Caja</span>
-            </button>
-
-            <div id="filterIndicator" class="hidden flex-grow bg-blue-900/30 border border-blue-800/50 rounded-xl p-2.5 flex justify-between items-center text-xs font-bold text-blue-400 mx-1">
-                <span id="filterIndicatorText" class="truncate pr-1">🏷️ Zona</span>
-                <button onclick="quitarFiltroZona()" class="bg-blue-500/20 text-blue-300 px-2 py-1 rounded-lg active:bg-blue-500/40 shrink-0">Todas</button>
+            <div id="filterIndicator" class="hidden flex-grow bg-blue-900/30 border border-blue-800/50 rounded-xl p-2.5 flex justify-between items-center text-xs font-bold text-blue-400">
+                <span id="filterIndicatorText">🏷️ Zona</span>
+                <button onclick="quitarFiltroZona()" class="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-lg active:bg-blue-500/40">Todas</button>
             </div>
             
-            <div class="flex bg-[#1c1c1e] border border-gray-800 rounded-xl overflow-hidden ml-auto shrink-0">
-                <button onclick="cambiarModoVista('grid')" id="btnViewGrid" class="px-3 py-2 text-gray-500 active:bg-gray-800 transition-colors">
+            <div class="flex bg-[#1c1c1e] border border-gray-800 rounded-xl overflow-hidden ml-auto">
+                <button onclick="cambiarModoVista('grid')" id="btnViewGrid" class="px-4 py-2 text-gray-500 active:bg-gray-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                 </button>
-                <button onclick="cambiarModoVista('lista')" id="btnViewLista" class="px-3 py-2 text-blue-500 bg-blue-900/20 active:bg-gray-800 transition-colors">
+                <button onclick="cambiarModoVista('lista')" id="btnViewLista" class="px-4 py-2 text-blue-500 bg-blue-900/20 active:bg-gray-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                 </button>
             </div>
         </div>
 
         <main id="boxGrid" class="p-4"></main>
+
+        <button onclick="addNuevaCaja()" class="fixed bottom-24 right-4 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-[0_0_15px_rgba(59,130,246,0.5)] active:scale-90 transition-transform z-20 border border-blue-400">
+            ➕
+        </button>
     </div>
 
     <div id="view-zonas" class="hidden p-4">
@@ -61,54 +62,111 @@
     </div>
 
     <div id="view-ajustes" class="hidden p-4">
+        
         <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Estado del Servidor</h2>
         <div class="bg-[#1c1c1e] rounded-3xl p-4 border border-gray-800 mb-6 flex items-center gap-3">
             <div class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse"></div>
             <span class="text-sm font-bold text-gray-200">Nube de Google Conectada</span>
         </div>
+
         <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Tus Zonas / Habitaciones</h2>
         <div class="bg-[#1c1c1e] rounded-3xl p-4 border border-gray-800 mb-6">
             <div class="flex gap-2 mb-4">
-                <input type="text" id="newZoneInput" placeholder="Ej: Garaje..." class="flex-grow p-3 rounded-xl bg-black border border-gray-700 outline-none focus:border-blue-500 text-sm font-medium text-white placeholder-gray-600">
+                <input type="text" id="newZoneInput" placeholder="Ej: Garaje, Coche..." class="flex-grow p-3 rounded-xl bg-black border border-gray-700 outline-none focus:border-blue-500 text-sm font-medium text-white placeholder-gray-600">
                 <button onclick="crearNuevaZona()" class="bg-blue-600 text-white px-5 rounded-xl font-bold active:bg-blue-800">✚</button>
             </div>
             <div id="listaZonasAjustes" class="flex flex-col gap-2"></div>
         </div>
+
+        <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Copias e Informes (Opcional)</h2>
+        <div class="bg-[#1c1c1e] rounded-3xl border border-gray-800 overflow-hidden mb-6">
+            <button onclick="exportarExcel()" class="w-full p-5 flex items-center justify-between active:bg-black transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="bg-green-900/40 text-green-400 w-10 h-10 rounded-full flex items-center justify-center text-lg">📊</div>
+                    <div class="text-left">
+                        <p class="font-bold text-gray-200">Exportar a Excel (.csv)</p>
+                        <p class="text-[11px] text-gray-500">Lista para imprimir o ver en PC</p>
+                    </div>
+                </div>
+                <span class="text-gray-600">❯</span>
+            </button>
+        </div>
     </div>
 
     <nav class="glass-dark fixed bottom-0 left-0 w-full border-t border-gray-800 pb-safe pt-2 px-2 flex justify-around z-30 h-20">
-        <button onclick="cambiarPestana('almacen')" class="flex flex-col items-center justify-center w-20 gap-1"><span id="tab-icon-almacen" class="text-2xl drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]">📦</span><span id="tab-text-almacen" class="text-[10px] font-bold text-blue-500">Almacén</span></button>
-        <button onclick="cambiarPestana('zonas')" class="flex flex-col items-center justify-center w-20 gap-1"><span id="tab-icon-zonas" class="text-2xl grayscale opacity-60">🗺️</span><span id="tab-text-zonas" class="text-[10px] font-bold text-gray-500">Zonas</span></button>
-        <button onclick="cambiarPestana('ajustes')" class="flex flex-col items-center justify-center w-20 gap-1"><span id="tab-icon-ajustes" class="text-2xl grayscale opacity-60">⚙️</span><span id="tab-text-ajustes" class="text-[10px] font-bold text-gray-500">Ajustes</span></button>
+        <button onclick="cambiarPestana('almacen')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
+            <span id="tab-icon-almacen" class="text-2xl grayscale-0 opacity-100 transition-all drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]">📦</span>
+            <span id="tab-text-almacen" class="text-[10px] font-bold text-blue-500 transition-colors">Almacén</span>
+        </button>
+
+        <button onclick="cambiarPestana('zonas')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
+            <span id="tab-icon-zonas" class="text-2xl grayscale opacity-60 transition-all">🗺️</span>
+            <span id="tab-text-zonas" class="text-[10px] font-bold text-gray-500 transition-colors">Zonas</span>
+        </button>
+        
+        <button onclick="cambiarPestana('ajustes')" class="flex flex-col items-center justify-center w-20 gap-1 active:scale-95 transition-transform">
+            <span id="tab-icon-ajustes" class="text-2xl grayscale opacity-60 transition-all">⚙️</span>
+            <span id="tab-text-ajustes" class="text-[10px] font-bold text-gray-500 transition-colors">Ajustes</span>
+        </button>
     </nav>
 
-    <div id="boxModal" class="hidden fixed inset-0 glass-dark z-50 flex items-end sm:items-center justify-center">
+    <div id="boxModal" class="hidden fixed inset-0 glass-dark z-50 flex items-end sm:items-center justify-center transition-opacity">
         <div class="bg-[#1c1c1e] w-full sm:w-96 rounded-t-[2rem] sm:rounded-3xl p-6 h-[85vh] sm:h-auto flex flex-col shadow-2xl relative border border-gray-800">
             <div class="flex justify-between items-center mb-4">
                 <h2 id="modalTitle" class="text-2xl font-black text-blue-500 uppercase tracking-tighter">📦 CAJA --</h2>
                 <button onclick="cerrarModal()" class="bg-gray-800 text-gray-400 w-10 h-10 rounded-full font-bold text-lg active:bg-gray-700">X</button>
             </div>
-            <input type="text" id="modalCustomName" placeholder="Nombre caja" onchange="guardarNombreCaja(this.value)" class="w-full mb-4 p-3 rounded-xl bg-black border border-gray-700 text-white">
-            <select id="modalZonaSelect" onchange="guardarZonaCaja(this.value)" class="w-full mb-4 p-3 rounded-xl bg-black border border-gray-700 text-white"></select>
-            <div class="flex-grow overflow-y-auto no-scrollbar mb-4 border-t border-b border-gray-800 py-4" id="modalItemsList"></div>
-            <div class="flex gap-2 items-center mb-1">
-                <input type="text" id="modalNewItem" placeholder="Añadir objeto..." class="flex-grow p-3.5 rounded-xl bg-black border border-gray-700 text-white">
-                <button id="modalVoiceBtn" class="bg-gray-800 text-gray-400 w-12 h-12 rounded-xl text-xl">🎤</button>
-                <button onclick="añadirItemManual()" class="bg-blue-600 text-white w-12 h-12 rounded-xl font-bold text-lg">✚</button>
+
+            <div class="mb-3">
+                <label class="text-[10px] font-bold text-gray-500 uppercase ml-1">Nombre de esta caja:</label>
+                <input type="text" id="modalCustomName" placeholder="Ej: Herramientas" onchange="guardarNombreCaja(this.value)" class="w-full mt-1 p-3 rounded-xl bg-black border border-gray-700 outline-none focus:border-blue-500 font-semibold text-white placeholder-gray-600">
             </div>
+
+            <div class="mb-4">
+                <label class="text-[10px] font-bold text-gray-500 uppercase ml-1">Etiqueta / Habitación:</label>
+                <select id="modalZonaSelect" onchange="guardarZonaCaja(this.value)" class="w-full mt-1 p-3 rounded-xl bg-black border border-gray-700 outline-none focus:border-blue-500 font-semibold text-white appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_solid] bg-[right_15px_center] bg-no-repeat">
+                </select>
+            </div>
+
+            <div class="flex-grow overflow-y-auto no-scrollbar mb-4 border-t border-b border-gray-800 py-4" id="modalItemsList"></div>
+
+            <div class="flex gap-2 items-center mb-1">
+                <input type="text" id="modalNewItem" placeholder="Añadir objeto..." class="flex-grow p-3.5 rounded-xl bg-black border border-gray-700 outline-none focus:border-blue-500 text-sm font-medium text-white placeholder-gray-500">
+                <button id="modalVoiceBtn" class="bg-gray-800 text-gray-400 w-12 h-12 rounded-xl flex items-center justify-center active:bg-gray-700 transition-all">
+                    <span id="modalMicIcon" class="text-xl">🎤</span>
+                </button>
+                <button onclick="añadirItemManual()" class="bg-blue-600 text-white w-12 h-12 rounded-xl font-bold text-lg active:bg-blue-800 transition-all">✚</button>
+            </div>
+            <div id="modalDebugLog" class="text-[10px] text-blue-400 font-bold text-center hidden mt-1">Listo</div>
         </div>
     </div>
 
+
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyBXofbNFQRt6YDPQWv7hIS7OgLRk1SscYg", authDomain: "locibox.firebaseapp.com", projectId: "locibox", storageBucket: "locibox.firebasestorage.app", messagingSenderId: "567800822474", appId: "1:567800822474:web:b2e27d6a1bbb6d8f9f9233" };
+        // 1. INICIALIZAR FIREBASE (Tus llaves intactas)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXofbNFQRt6YDPQWv7hIS7OgLRk1SscYg",
+            authDomain: "locibox.firebaseapp.com",
+            projectId: "locibox",
+            storageBucket: "locibox.firebasestorage.app",
+            messagingSenderId: "567800822474",
+            appId: "1:567800822474:web:b2e27d6a1bbb6d8f9f9233"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // 2. VARIABLES GLOBALES
         let totalCajas = parseInt(localStorage.getItem('miInventario_totalCajas')) || 20;
         let inventario = JSON.parse(localStorage.getItem('miInventario_v5')) || {};
         let listaZonas = JSON.parse(localStorage.getItem('miInventario_zonas')) || ["Despacho", "Trastero", "Dormitorio", "Armario"];
-        let filtroZonaActual = ""; let modoVista = localStorage.getItem('locibox_modoVista') || 'lista'; let acordeonesEstado = {};
+        let filtroZonaActual = ""; 
+        
+        // --- NUEVAS VARIABLES DE VISTA PRO 2.0 ---
+        let modoVista = localStorage.getItem('locibox_modoVista') || 'lista'; // 'grid' o 'lista'
+        let acordeonesEstado = {}; // Guarda qué zonas están abiertas
 
         function verificarEstructuraCajas() {
             for(let i=1; i<=totalCajas; i++) {
@@ -117,62 +175,395 @@
                 if(!inventario[id].zona) inventario[id].zona = ""; 
             }
         }
+
+        // 3. SINCRONIZACIÓN FIREBASE
         db.collection("datos").doc("miInventario").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
-                inventario = data.inventario || {}; totalCajas = data.totalCajas || 20; listaZonas = data.listaZonas || ["Despacho", "Trastero", "Dormitorio", "Armario"];
-                verificarEstructuraCajas(); listaZonas.forEach(z => { if(acordeonesEstado[z] === undefined) acordeonesEstado[z] = true; });
+                inventario = data.inventario || {};
+                totalCajas = data.totalCajas || 20;
+                listaZonas = data.listaZonas || ["Despacho", "Trastero", "Dormitorio", "Armario"];
+                
+                verificarEstructuraCajas();
+                
+                // Inicializar acordeones abiertos por defecto si no existen
+                listaZonas.forEach(z => { if(acordeonesEstado[z] === undefined) acordeonesEstado[z] = true; });
+                if(acordeonesEstado["Sin asignar"] === undefined) acordeonesEstado["Sin asignar"] = true;
+
                 render(searchInput.value);
+                if (cajaAbiertaActual) renderItemsModal();
+                if (!document.getElementById('view-zonas').classList.contains('hidden')) renderZonasTab();
+                if (!document.getElementById('view-ajustes').classList.contains('hidden')) renderZonasAjustes();
+            } else {
+                guardarDatos();
             }
         });
+
+        // 4. GUARDADO
         function guardarDatos() {
-            localStorage.setItem('miInventario_v5', JSON.stringify(inventario)); localStorage.setItem('miInventario_totalCajas', totalCajas); localStorage.setItem('miInventario_zonas', JSON.stringify(listaZonas));
-            db.collection("datos").doc("miInventario").set({ inventario: inventario, totalCajas: totalCajas, listaZonas: listaZonas });
+            localStorage.setItem('miInventario_v5', JSON.stringify(inventario));
+            localStorage.setItem('miInventario_totalCajas', totalCajas);
+            localStorage.setItem('miInventario_zonas', JSON.stringify(listaZonas));
+            
+            db.collection("datos").doc("miInventario").set({ inventario: inventario, totalCajas: totalCajas, listaZonas: listaZonas })
+              .catch((error) => console.error("Error al guardar: ", error));
         }
+
+        // --- SISTEMA DE VISTAS (Grid vs Lista) ---
         function cambiarModoVista(modo) {
-            modoVista = modo; localStorage.setItem('locibox_modoVista', modo);
-            const btnGrid = document.getElementById('btnViewGrid'); const btnLista = document.getElementById('btnViewLista');
-            btnGrid.className = (modo === 'grid' ? "px-3 py-2 text-blue-500 bg-blue-900/20" : "px-3 py-2 text-gray-500") + " active:bg-gray-800 transition-colors";
-            btnLista.className = (modo === 'lista' ? "px-3 py-2 text-blue-500 bg-blue-900/20" : "px-3 py-2 text-gray-500") + " active:bg-gray-800 transition-colors";
+            modoVista = modo;
+            localStorage.setItem('locibox_modoVista', modo);
+            
+            // Estilos de los botones
+            const btnGrid = document.getElementById('btnViewGrid');
+            const btnLista = document.getElementById('btnViewLista');
+            
+            if(modo === 'grid') {
+                btnGrid.className = "px-4 py-2 text-blue-500 bg-blue-900/20 active:bg-gray-800 transition-colors";
+                btnLista.className = "px-4 py-2 text-gray-500 active:bg-gray-800 transition-colors";
+            } else {
+                btnLista.className = "px-4 py-2 text-blue-500 bg-blue-900/20 active:bg-gray-800 transition-colors";
+                btnGrid.className = "px-4 py-2 text-gray-500 active:bg-gray-800 transition-colors";
+            }
             render(searchInput.value);
         }
-        function toggleAcordeon(zona) { acordeonesEstado[zona] = !acordeonesEstado[zona]; render(searchInput.value); }
-        function añadirNuevaCaja() { totalCajas++; let id = totalCajas < 10 ? '0'+totalCajas : totalCajas.toString(); inventario[id] = { titulo: "", items: [], zona: "" }; guardarDatos(); }
+
+        function toggleAcordeon(zona) {
+            acordeonesEstado[zona] = !acordeonesEstado[zona];
+            render(searchInput.value);
+        }
+
+        // --- NAVEGACIÓN Y RENDER DE PESTAÑAS ---
+        function añadirNuevaCaja() {
+            totalCajas++;
+            let id = totalCajas < 10 ? '0'+totalCajas : totalCajas.toString();
+            inventario[id] = { titulo: "", items: [], zona: "" };
+            guardarDatos();
+        }
+
         function cambiarPestana(pestana) {
-            document.getElementById('view-almacen').classList.add('hidden'); document.getElementById('view-zonas').classList.add('hidden'); document.getElementById('view-ajustes').classList.add('hidden');
-            ["almacen", "zonas", "ajustes"].forEach(t => { document.getElementById(`tab-text-${t}`).className = "text-[10px] font-bold text-gray-500"; document.getElementById(`tab-icon-${t}`).className = "text-2xl grayscale opacity-60"; });
-            document.getElementById(`view-${pestana}`).classList.remove('hidden'); document.getElementById(`tab-text-${pestana}`).className = "text-[10px] font-bold text-blue-500"; document.getElementById(`tab-icon-${pestana}`).className = "text-2xl drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]";
+            document.getElementById('view-almacen').classList.add('hidden');
+            document.getElementById('view-zonas').classList.add('hidden');
+            document.getElementById('view-ajustes').classList.add('hidden');
+
+            ["almacen", "zonas", "ajustes"].forEach(t => {
+                document.getElementById(`tab-text-${t}`).className = "text-[10px] font-bold text-gray-500 transition-colors";
+                document.getElementById(`tab-icon-${t}`).className = "text-2xl grayscale opacity-60 transition-all";
+                document.getElementById(`tab-icon-${t}`).style.filter = "none";
+            });
+
+            document.getElementById(`view-${pestana}`).classList.remove('hidden');
+            document.getElementById(`tab-text-${pestana}`).className = "text-[10px] font-bold text-blue-500 transition-colors";
+            document.getElementById(`tab-icon-${pestana}`).className = "text-2xl grayscale-0 opacity-100 transition-all drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]";
+
             if (pestana === 'almacen') render(searchInput.value);
+            if (pestana === 'zonas') renderZonasTab();
+            if (pestana === 'ajustes') renderZonasAjustes();
         }
+
+        function renderZonasTab() {
+            const grid = document.getElementById('zonasGrid');
+            grid.innerHTML = '';
+            listaZonas.forEach(zona => {
+                let numCajas = Object.values(inventario).filter(c => c.zona === zona).length;
+                grid.innerHTML += `
+                    <button onclick="filtrarPorZona('${zona}')" class="w-full bg-[#1c1c1e] p-5 rounded-2xl border border-gray-800 shadow-sm flex justify-between items-center active:bg-black transition-all">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">🏷️</span>
+                            <span class="font-bold text-gray-200 text-sm">${zona}</span>
+                        </div>
+                        <span class="text-xs bg-gray-800 text-gray-400 font-bold px-3 py-1 rounded-full">${numCajas} ${numCajas === 1 ? 'caja' : 'cajas'}</span>
+                    </button>
+                `;
+            });
+        }
+
+        function filtrarPorZona(zona) {
+            filtroZonaActual = zona;
+            document.getElementById('filterIndicatorText').innerText = `🏷️ ${zona}`;
+            document.getElementById('filterIndicator').classList.remove('hidden');
+            cambiarPestana('almacen');
+        }
+
+        function quitarFiltroZona() {
+            filtroZonaActual = "";
+            document.getElementById('filterIndicator').classList.add('hidden');
+            render(searchInput.value);
+        }
+
+        function renderZonasAjustes() {
+            const lista = document.getElementById('listaZonasAjustes');
+            lista.innerHTML = '';
+            listaZonas.forEach((zona, idx) => {
+                lista.innerHTML += `
+                    <div class="flex justify-between items-center bg-black p-3 rounded-xl border border-gray-800">
+                        <span class="text-sm font-semibold text-gray-300">🏷️ ${zona}</span>
+                        <button onclick="eliminarZona(${idx})" class="text-red-500 font-bold px-2 active:scale-110 transition-transform">✕</button>
+                    </div>
+                `;
+            });
+        }
+
+        function crearNuevaZona() {
+            const input = document.getElementById('newZoneInput');
+            const valor = input.value.trim();
+            if(valor && !listaZonas.includes(valor)) {
+                listaZonas.push(valor);
+                acordeonesEstado[valor] = true;
+                guardarDatos();
+                input.value = '';
+                renderZonasAjustes();
+            }
+        }
+
+        function eliminarZona(idx) {
+            const zona = listaZonas[idx];
+            if(confirm(`¿Borrar zona "${zona}"?`)) {
+                for(let id in inventario) { if(inventario[id].zona === zona) inventario[id].zona = ""; }
+                listaZonas.splice(idx, 1);
+                guardarDatos();
+                renderZonasAjustes();
+            }
+        }
+
+        // --- RENDERIZADO PRINCIPAL (MOTOR PRO 2.0) ---
+        const boxGrid = document.getElementById('boxGrid');
+        const searchInput = document.getElementById('searchInput');
+
         function render(filtro = "") {
-            boxGrid.innerHTML = ''; let agrupado = {}; listaZonas.forEach(z => agrupado[z] = []); agrupado["Sin asignar"] = [];
+            boxGrid.innerHTML = '';
+            
+            // 1. Agrupar cajas por zona
+            let agrupado = {};
+            listaZonas.forEach(z => agrupado[z] = []);
+            agrupado["Sin asignar"] = [];
+
+            let hayResultados = false;
+
             for (let i = 1; i <= totalCajas; i++) {
-                const id = i < 10 ? '0' + i : i.toString(); const caja = inventario[id] || { titulo: "", items: [], zona: "" };
+                const id = i < 10 ? '0' + i : i.toString();
+                const caja = inventario[id] || { titulo: "", items: [], zona: "" };
+                const contenidoTexto = caja.items.join(", ");
+                const tituloMostrar = caja.titulo ? caja.titulo : `CAJA ${id}`;
+                
+                // Aplicar filtros
                 if (filtroZonaActual && caja.zona !== filtroZonaActual && !(caja.zona==="" && filtroZonaActual==="Sin asignar")) continue;
-                if (filtro && !caja.items.join(" ").toLowerCase().includes(filtro.toLowerCase()) && !(caja.titulo||"").toLowerCase().includes(filtro.toLowerCase())) continue;
+                if (filtro && !contenidoTexto.toLowerCase().includes(filtro.toLowerCase()) && 
+                    !tituloMostrar.toLowerCase().includes(filtro.toLowerCase()) && 
+                    !id.includes(filtro) && !(caja.zona || "").toLowerCase().includes(filtro.toLowerCase())) continue;
+                
                 let zonaDestino = caja.zona || "Sin asignar";
-                if(agrupado[zonaDestino]) agrupado[zonaDestino].push({ id, caja });
+                if(agrupado[zonaDestino]) {
+                    agrupado[zonaDestino].push({ id, caja, tituloMostrar, contenidoTexto });
+                    hayResultados = true;
+                }
             }
+
+            if (!hayResultados && filtro) {
+                boxGrid.innerHTML = `<div class="text-center text-gray-500 mt-10 p-5">No se encontraron resultados para "${filtro}"</div>`;
+                return;
+            }
+
+            // 2. Dibujar acordeones
             for (let zona in agrupado) {
-                const cajasDeZona = agrupado[zona]; if (cajasDeZona.length === 0 && (filtro || zona === "Sin asignar")) continue;
-                const isOpen = acordeonesEstado[zona] !== false;
-                boxGrid.innerHTML += `<div class="mb-4"><button onclick="toggleAcordeon('${zona}')" class="w-full flex justify-between items-center text-gray-400 pb-2 text-[10px] font-bold tracking-widest uppercase"><span>🏷️ ${zona} (${cajasDeZona.length})</span> <span>${isOpen ? '▼' : '▶'}</span></button>
-                    ${isOpen ? `<div class="${modoVista === 'grid' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2'}">${cajasDeZona.map(item => `
-                        <div onclick="abrirModal('${item.id}')" class="box-card ${item.caja.items.length === 0 ? 'ghost-mode' : ''} bg-[#1c1c1e] p-3 rounded-xl border border-gray-800">
-                            <div class="flex items-center gap-3"><span class="text-xl">📦</span>
-                                <div class="flex flex-col overflow-hidden"><span class="text-[11px] font-black text-blue-400 uppercase truncate">${item.caja.titulo || 'Caja '+item.id}</span>
-                                <span class="text-[10px] text-gray-500 truncate">${item.caja.items.join(", ") || 'Vacía'}</span></div>
+                const cajasDeZona = agrupado[zona];
+                
+                // Si la zona está vacía y no hay filtro, la mostramos vacía. Si hay filtro, la ocultamos.
+                if (cajasDeZona.length === 0 && (filtro || zona === "Sin asignar")) continue;
+
+                const isOpen = acordeonesEstado[zona];
+                const iconoFlecha = isOpen ? '▼' : '▶';
+                const opacityHeader = cajasDeZona.length === 0 ? 'opacity-50' : 'opacity-100';
+
+                // Cabecera del Acordeón
+                let htmlZona = `
+                    <div class="mb-4">
+                        <button onclick="toggleAcordeon('${zona}')" class="w-full flex justify-between items-center bg-[#111111] border-b border-gray-800 pb-2 mb-3 pt-1 ${opacityHeader}">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm">🏷️</span>
+                                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest">${zona} <span class="text-xs font-normal text-gray-600 ml-1">(${cajasDeZona.length})</span></h3>
                             </div>
-                        </div>`).join('')}</div>` : ''}</div>`;
+                            <span class="text-gray-600 text-xs">${iconoFlecha}</span>
+                        </button>
+                `;
+
+                // Contenido del Acordeón
+                if (isOpen) {
+                    if (cajasDeZona.length === 0) {
+                        htmlZona += `<div class="text-xs text-gray-600 italic pl-6 mb-4">No hay cajas aquí</div>`;
+                    } else {
+                        // Contenedor según modo de vista
+                        const gridClass = modoVista === 'grid' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2';
+                        htmlZona += `<div class="${gridClass}">`;
+
+                        cajasDeZona.forEach(item => {
+                            const { id, caja, tituloMostrar, contenidoTexto } = item;
+                            const isEmpty = caja.items.length === 0;
+                            const ghostClass = isEmpty ? 'ghost-mode' : '';
+
+                            if (modoVista === 'grid') {
+                                // TARJETA CUADRÍCULA
+                                htmlZona += `
+                                    <div onclick="abrirModal('${id}')" class="box-card ${ghostClass} h-full bg-[#1c1c1e] p-4 border border-gray-800 rounded-2xl flex flex-col items-center text-center relative overflow-hidden justify-between">
+                                        <div class="flex flex-col items-center w-full">
+                                            <span class="text-2xl mb-1 drop-shadow-md">📦</span>
+                                            <span class="text-[11px] font-black text-blue-400 uppercase leading-tight mt-1">${tituloMostrar}</span>
+                                            <p class="mt-2 text-[11px] text-gray-400 font-medium line-clamp-2 leading-tight">
+                                                ${!isEmpty ? contenidoTexto : '<span class="italic font-normal">Vacía</span>'}
+                                            </p>
+                                        </div>
+                                        ${!isEmpty ? `<div class="mt-2 text-[9px] bg-blue-900/30 border border-blue-800/50 text-blue-300 px-2 py-0.5 rounded-full font-bold shrink-0">${caja.items.length} ítems</div>` : ''}
+                                    </div>
+                                `;
+                            } else {
+                                // LISTA COMPACTA
+                                htmlZona += `
+                                    <div onclick="abrirModal('${id}')" class="box-card ${ghostClass} flex justify-between items-center bg-[#1c1c1e] p-3 rounded-xl border border-gray-800 active:bg-black">
+                                        <div class="flex items-center gap-3 overflow-hidden">
+                                            <span class="text-xl shrink-0">📦</span>
+                                            <div class="flex flex-col text-left overflow-hidden">
+                                                <span class="text-[12px] font-black text-blue-400 uppercase leading-tight truncate">${tituloMostrar}</span>
+                                                <span class="text-[10px] text-gray-500 truncate w-40 sm:w-60">${!isEmpty ? contenidoTexto : 'Vacía'}</span>
+                                            </div>
+                                        </div>
+                                        ${!isEmpty ? `<div class="text-[10px] bg-blue-900/30 text-blue-300 px-2.5 py-1 rounded-full font-bold shrink-0">${caja.items.length}</div>` : ''}
+                                    </div>
+                                `;
+                            }
+                        });
+                        htmlZona += `</div>`;
+                    }
+                }
+                htmlZona += `</div>`;
+                boxGrid.innerHTML += htmlZona;
             }
         }
-        function abrirModal(id) { cajaAbiertaActual = id; document.getElementById('modalTitle').innerText = '📦 CAJA '+id; document.getElementById('modalCustomName').value = inventario[id].titulo || ""; const s = document.getElementById('modalZonaSelect'); s.innerHTML = '<option value="">⚠️ Sin asignar</option>' + listaZonas.map(z => `<option value="${z}" ${inventario[id].zona === z ? 'selected' : ''}>🏷️ ${z}</option>`).join(''); renderItemsModal(); modal.classList.remove('hidden'); }
-        function cerrarModal() { modal.classList.add('hidden'); }
-        function renderItemsModal() { document.getElementById('modalItemsList').innerHTML = inventario[cajaAbiertaActual].items.length === 0 ? '<p class="text-center text-gray-600 text-sm italic">Vacía</p>' : inventario[cajaAbiertaActual].items.map((it, idx) => `<div class="flex justify-between items-center bg-black p-3 rounded-xl mb-2 border border-gray-800"><span class="text-sm text-gray-200 capitalize">${it}</span><button onclick="borrarItem(${idx})" class="text-red-400 bg-red-900/30 w-8 h-8 rounded-full">X</button></div>`).join(''); }
-        function borrarItem(idx) { inventario[cajaAbiertaActual].items.splice(idx, 1); guardarDatos(); renderItemsModal(); }
-        function añadirItemManual() { const input = document.getElementById('modalNewItem'); if (input.value) { inventario[cajaAbiertaActual].items.push(input.value); guardarDatos(); input.value = ''; renderItemsModal(); } }
-        searchInput.addEventListener('input', (e) => render(e.target.value));
+        
+        function addNuevaCaja() { añadirNuevaCaja(); }
+        
+        // Inicialización de vista
         cambiarModoVista(modoVista);
+        searchInput.addEventListener('input', (e) => render(e.target.value));
+
+        // --- LÓGICA DEL MODAL ---
+        const modal = document.getElementById('boxModal');
+        let cajaAbiertaActual = null;
+
+        function abrirModal(id) {
+            cajaAbiertaActual = id;
+            document.getElementById('modalTitle').innerText = `📦 CAJA ${id}`;
+            document.getElementById('modalCustomName').value = inventario[id].titulo || "";
+            
+            const select = document.getElementById('modalZonaSelect');
+            select.innerHTML = '<option value="">⚠️ Sin asignar</option>';
+            listaZonas.forEach(zona => {
+                const selected = inventario[id].zona === zona ? 'selected' : '';
+                select.innerHTML += `<option value="${zona}" ${selected}>🏷️ ${zona}</option>`;
+            });
+
+            renderItemsModal();
+            modal.classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            if(Speech && recognition) recognition.stop(); 
+            modal.classList.add('hidden');
+            cajaAbiertaActual = null;
+        }
+
+        function guardarNombreCaja(n) { inventario[cajaAbiertaActual].titulo = n; guardarDatos(); }
+        function guardarZonaCaja(z) { inventario[cajaAbiertaActual].zona = z; guardarDatos(); }
+
+        function renderItemsModal() {
+            const fontColor = 'text-gray-200';
+            const lista = document.getElementById('modalItemsList');
+            lista.innerHTML = '';
+            const items = inventario[cajaAbiertaActual].items;
+
+            if(items.length === 0) {
+                lista.innerHTML = '<p class="text-center text-gray-600 text-sm italic mt-10">La caja está vacía</p>';
+                return;
+            }
+
+            items.forEach((item, index) => {
+                lista.innerHTML += `
+                    <div class="flex justify-between items-center bg-black p-3 rounded-xl mb-2 border border-gray-800">
+                        <span class="text-sm font-medium ${fontColor} capitalize">${item}</span>
+                        <button onclick="borrarItem(${index})" class="text-red-400 bg-red-900/30 w-8 h-8 rounded-full flex items-center justify-center font-bold active:bg-red-900/50">X</button>
+                    </div>
+                `;
+            });
+        }
+
+        function borrarItem(index) { inventario[cajaAbiertaActual].items.splice(index, 1); guardarDatos(); }
+
+        function añadirItemManual() {
+            const input = document.getElementById('modalNewItem');
+            const valor = input.value.trim();
+            if (valor) {
+                let items = valor.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
+                inventario[cajaAbiertaActual].items.push(...items);
+                guardarDatos();
+                input.value = '';
+            }
+        }
+
+        function exportarExcel() {
+            let csv = "\uFEFFCaja;Identificador;Nombre;Ubicacion;Objetos;Cantidad\n";
+            for (let i = 1; i <= totalCajas; i++) {
+                const id = i < 10 ? '0' + i : i.toString(); const c = inventario[id];
+                csv += `${i};"${id}";"${c.titulo?c.titulo.replace(/;/g, ","):`Caja ${id}`}";"${c.zona?c.zona.replace(/;/g, ","):"Sin asignar"}";"${c.items.length>0?c.items.join(", ").replace(/;/g, "-"):"Vacía"}";${c.items.length}\n`;
+            }
+            const b = new Blob([csv], { type: "text/csv;charset=utf-8;" }); const u = URL.createObjectURL(b);
+            const a = document.createElement('a'); a.href = u; a.download = `lociBox_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
+        }
+
+        // --- SISTEMA DE VOZ ---
+        const modalVoiceBtn = document.getElementById('modalVoiceBtn');
+        const modalMicIcon = document.getElementById('modalMicIcon');
+        const modalDebugLog = document.getElementById('modalDebugLog');
+        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+
+        if (Speech) {
+            recognition = new Speech();
+            recognition.lang = 'es-ES'; recognition.continuous = false;
+            modalVoiceBtn.addEventListener('click', () => {
+                if (cajaAbiertaActual) {
+                    try {
+                        recognition.start(); modalVoiceBtn.classList.add('is-listening');
+                        modalMicIcon.innerText = "🛑"; modalDebugLog.innerText = "Escuchando...";
+                        modalDebugLog.classList.remove('hidden');
+                    } catch (e) { recognition.stop(); }
+                }
+            });
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.trim().toLowerCase();
+                if (cajaAbiertaActual && transcript.length > 1) {
+                    let itemsNuevos = transcript.split(/ y |,| e /).map(i => i.trim()).filter(i => i);
+                    inventario[cajaAbiertaActual].items.push(...itemsNuevos);
+                    guardarDatos();
+                    modalDebugLog.innerText = `¡Guardado: ${itemsNuevos.join(", ")}!`;
+                    setTimeout(() => modalDebugLog.classList.add('hidden'), 2000);
+                }
+            };
+            recognition.onerror = () => stopListeningVisuals();
+            recognition.onend = () => stopListeningVisuals();
+            function stopListeningVisuals() { modalVoiceBtn.classList.remove('is-listening'); modalMicIcon.innerText = "🎤"; }
+        } else { modalVoiceBtn.style.display = 'none'; }
+
+        // --- DETECTOR DE CÓDIGOS QR ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const abrirId = urlParams.get('abrir');
+            if (abrirId) {
+                let numId = parseInt(abrirId);
+                if (numId > totalCajas) { totalCajas = numId; guardarDatos(); }
+                let idFormateado = numId < 10 ? '0' + numId : numId.toString();
+                setTimeout(() => abrirModal(idFormateado), 500); 
+            }
+        });
     </script>
 </body>
 </html>
