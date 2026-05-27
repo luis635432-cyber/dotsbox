@@ -34,7 +34,7 @@
 
         <div class="px-4 pb-2 flex justify-between items-center gap-2">
             
-            <button onclick="addNuevaCaja()" class="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm active:bg-blue-800 transition-all duration-200 active:scale-90 shadow-[0_0_10px_rgba(59,130,246,0.3)] shrink-0 transform">
+            <button onclick="añadirNuevaCaja()" class="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm active:bg-blue-800 transition-colors shadow-[0_0_10px_rgba(59,130,246,0.3)] shrink-0">
                 <span>➕</span>
                 <span>Caja</span>
             </button>
@@ -74,7 +74,7 @@
         <div class="bg-[#1c1c1e] rounded-3xl p-4 border border-gray-800 mb-6">
             <div class="flex gap-2 mb-4">
                 <input type="text" id="newZoneInput" placeholder="Ej: Garaje, Coche..." class="flex-grow p-3 rounded-xl bg-black border border-gray-700 outline-none focus:border-blue-500 text-sm font-medium text-white placeholder-gray-600">
-                <button onclick="crearNuevaZona()" class="bg-blue-600 text-white px-5 rounded-xl font-bold active:bg-blue-800 transition-all active:scale-90">✚</button>
+                <button onclick="crearNuevaZona()" class="bg-blue-600 text-white px-5 rounded-xl font-bold active:bg-blue-800 transition-colors">✚</button>
             </div>
             <div id="listaZonasAjustes" class="flex flex-col gap-2"></div>
         </div>
@@ -141,7 +141,7 @@
                     <button id="modalVoiceBtn" class="bg-gray-800 text-gray-400 w-12 h-12 rounded-xl flex items-center justify-center active:bg-gray-700 transition-all">
                         <span id="modalMicIcon" class="text-xl">🎤</span>
                     </button>
-                    <button onclick="añadirItemManual()" class="bg-blue-600 text-white w-12 h-12 rounded-xl font-bold text-lg active:bg-blue-800 transition-all active:scale-90">✚</button>
+                    <button onclick="añadirItemManual()" class="bg-blue-600 text-white w-12 h-12 rounded-xl font-bold text-lg active:bg-blue-800 transition-colors">✚</button>
                 </div>
                 <div id="modalDebugLog" class="text-[10px] text-blue-400 font-bold text-center hidden mt-1">Listo</div>
             </div>
@@ -251,9 +251,6 @@
         }
 
         function añadirNuevaCaja() {
-            // Haptic Feedback suave si está disponible
-            if (navigator.vibrate) navigator.vibrate(15);
-
             let idNuevo = null;
             
             for (let i = 1; i <= totalCajas; i++) {
