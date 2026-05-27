@@ -15,14 +15,13 @@
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .glass-dark { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-        /* Modo Fantasma para cajas vacías */
         .ghost-mode { opacity: 0.4; filter: grayscale(50%); border-color: #1f2937 !important; }
     </style>
 </head>
 <body class="text-gray-200 min-h-screen pb-28">
 
     <header class="glass-dark p-4 border-b border-gray-800/60 sticky top-0 z-20 flex justify-center items-center">
-        <img src="logo.png" alt="LociBox Logo" class="h-[22px] w-auto object-contain">
+        <img src="logo.png" alt="LociBox Logo" class="h-[21px] w-auto object-contain">
     </header>
 
     <div id="view-almacen" class="block relative min-h-screen">
@@ -151,7 +150,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
     <script>
-        // 1. INICIALIZAR FIREBASE (Tus llaves intactas)
         const firebaseConfig = {
             apiKey: "AIzaSyBXofbNFQRt6YDPQWv7hIS7OgLRk1SscYg",
             authDomain: "locibox.firebaseapp.com",
@@ -163,7 +161,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 2. VARIABLES GLOBALES
         let totalCajas = parseInt(localStorage.getItem('miInventario_totalCajas')) || 20;
         let inventario = JSON.parse(localStorage.getItem('miInventario_v5')) || {};
         let listaZonas = JSON.parse(localStorage.getItem('miInventario_zonas')) || ["Despacho", "Trastero", "Dormitorio", "Armario"];
@@ -172,7 +169,6 @@
         let modoVista = localStorage.getItem('locibox_modoVista') || 'lista'; 
         let acordeonesEstado = {}; 
 
-        // Modificado para no rellenar huecos vacíos
         function verificarEstructuraCajas() {
             for (let id in inventario) {
                 if(!inventario[id]) continue;
@@ -181,7 +177,6 @@
             }
         }
 
-        // 3. SINCRONIZACIÓN FIREBASE
         db.collection("datos").doc("miInventario").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
@@ -203,7 +198,6 @@
             }
         });
 
-        // 4. GUARDADO
         function guardarDatos() {
             localStorage.setItem('miInventario_v5', JSON.stringify(inventario));
             localStorage.setItem('miInventario_totalCajas', totalCajas);
@@ -213,7 +207,6 @@
               .catch((error) => console.error("Error al guardar: ", error));
         }
 
-        // --- SISTEMA DE VISTAS (Grid vs Lista) ---
         function cambiarModoVista(modo) {
             modoVista = modo;
             localStorage.setItem('locibox_modoVista', modo);
@@ -236,33 +229,31 @@
             render(searchInput.value);
         }
 
-        // --- NAVEGACIÓN Y RENDER DE PESTAÑAS ---
-
-        // NUEVO: SISTEMA RADAR DE CREACIÓN DE CAJAS
+        // 3. AVISO DE CREACIÓN
         function añadirNuevaCaja() {
             let idNuevo = null;
             
-            // 1. Radar: Buscar el primer hueco disponible (del 1 al totalCajas actual)
             for (let i = 1; i <= totalCajas; i++) {
                 let id = i < 10 ? '0' + i : i.toString();
                 if (!inventario[id]) {
                     idNuevo = id;
-                    break; // ¡Hueco encontrado!
+                    break; 
                 }
             }
             
-            // 2. Si no hay huecos, sumamos una caja al final
             if (!idNuevo) {
-                totalCajas++;
-                idNuevo = totalCajas < 10 ? '0' + totalCajas : totalCajas.toString();
+                let numSiguiente = totalCajas + 1;
+                idNuevo = numSiguiente < 10 ? '0' + numSiguiente : numSiguiente.toString();
             }
-            
-            // 3. Crear e inyectar
-            inventario[idNuevo] = { titulo: "", items: [], zona: "" };
-            guardarDatos();
-            
-            // 4. Abrir automáticamente la nueva caja
-            setTimeout(() => abrirModal(idNuevo), 200);
+
+            if (confirm(`Vas a crear la CAJA ${idNuevo}. ¿Continuar?`)) {
+                if (parseInt(idNuevo) > totalCajas) {
+                    totalCajas = parseInt(idNuevo);
+                }
+                inventario[idNuevo] = { titulo: "", items: [], zona: "" };
+                guardarDatos();
+                setTimeout(() => abrirModal(idNuevo), 200);
+            }
         }
 
         function cambiarPestana(pestana) {
@@ -350,14 +341,12 @@
             }
         }
 
-        // --- RENDERIZADO PRINCIPAL (MOTOR PRO 2.0) ---
         const boxGrid = document.getElementById('boxGrid');
         const searchInput = document.getElementById('searchInput');
 
         function render(filtro = "") {
             boxGrid.innerHTML = '';
             
-            // 1. Agrupar cajas por zona
             let agrupado = {};
             listaZonas.forEach(z => agrupado[z] = []);
             agrupado["Sin asignar"] = [];
@@ -367,14 +356,12 @@
             for (let i = 1; i <= totalCajas; i++) {
                 const id = i < 10 ? '0' + i : i.toString();
                 
-                // Si la caja ha sido eliminada, la ignoramos para no pintarla
                 if (!inventario[id]) continue; 
 
                 const caja = inventario[id];
                 const contenidoTexto = caja.items.join(", ");
                 const tituloMostrar = caja.titulo ? caja.titulo : `CAJA ${id}`;
                 
-                // Aplicar filtros
                 if (filtroZonaActual && caja.zona !== filtroZonaActual && !(caja.zona==="" && filtroZonaActual==="Sin asignar")) continue;
                 if (filtro && !contenidoTexto.toLowerCase().includes(filtro.toLowerCase()) && 
                     !tituloMostrar.toLowerCase().includes(filtro.toLowerCase()) && 
@@ -392,8 +379,18 @@
                 return;
             }
 
-            // 2. Dibujar acordeones
-            for (let zona in agrupado) {
+            // 2. ORDENACIÓN INTELIGENTE DE ZONAS
+            // Separar "Sin asignar" para que siempre quede al final
+            let zonasParaOrdenar = Object.keys(agrupado).filter(z => z !== "Sin asignar");
+            
+            // Ordenar de mayor cantidad de cajas a menor
+            zonasParaOrdenar.sort((a, b) => agrupado[b].length - agrupado[a].length);
+            
+            // Volver a añadir "Sin asignar" al final
+            zonasParaOrdenar.push("Sin asignar");
+
+            // Dibujar acordeones usando el nuevo orden
+            for (let zona of zonasParaOrdenar) {
                 const cajasDeZona = agrupado[zona];
                 
                 if (cajasDeZona.length === 0 && (filtro || zona === "Sin asignar")) continue;
@@ -466,7 +463,6 @@
         cambiarModoVista(modoVista);
         searchInput.addEventListener('input', (e) => render(e.target.value));
 
-        // --- LÓGICA DEL MODAL ---
         const modal = document.getElementById('boxModal');
         let cajaAbiertaActual = null;
 
@@ -486,10 +482,9 @@
             modal.classList.remove('hidden');
         }
 
-        // NUEVO: SISTEMA DE BORRADO DE CAJA
         function borrarCajaActual() {
             if (confirm(`⚠️ ¿Seguro que quieres ELIMINAR la CAJA ${cajaAbiertaActual}?\n\nSe borrará todo su contenido, pero el número quedará libre para la próxima caja que crees.`)) {
-                delete inventario[cajaAbiertaActual]; // Elimina la caja de la base de datos
+                delete inventario[cajaAbiertaActual]; 
                 guardarDatos();
                 cerrarModal();
             }
@@ -542,7 +537,7 @@
             let csv = "\uFEFFCaja;Identificador;Nombre;Ubicacion;Objetos;Cantidad\n";
             for (let i = 1; i <= totalCajas; i++) {
                 const id = i < 10 ? '0' + i : i.toString(); 
-                if (!inventario[id]) continue; // Ignorar cajas borradas
+                if (!inventario[id]) continue; 
                 const c = inventario[id];
                 csv += `${i};"${id}";"${c.titulo?c.titulo.replace(/;/g, ","):`Caja ${id}`}";"${c.zona?c.zona.replace(/;/g, ","):"Sin asignar"}";"${c.items.length>0?c.items.join(", ").replace(/;/g, "-"):"Vacía"}";${c.items.length}\n`;
             }
@@ -551,7 +546,6 @@
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
         }
 
-        // --- SISTEMA DE VOZ ---
         const modalVoiceBtn = document.getElementById('modalVoiceBtn');
         const modalMicIcon = document.getElementById('modalMicIcon');
         const modalDebugLog = document.getElementById('modalDebugLog');
@@ -585,7 +579,6 @@
             function stopListeningVisuals() { modalVoiceBtn.classList.remove('is-listening'); modalMicIcon.innerText = "🎤"; }
         } else { modalVoiceBtn.style.display = 'none'; }
 
-        // --- DETECTOR DE CÓDIGOS QR ---
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const abrirId = urlParams.get('abrir');
